@@ -1,5 +1,6 @@
 const {v4: uuidv4} = require('uuid');
 const {saveExpense} = require('../../utils/firebaseUtility');
+const {appendExpenseToSheet} = require('../../utils/googleSheetsUtility');
 const {clearUserState} = require('../userState');
 const {BUDGET_ID} = require('../../configs/consts');
 
@@ -12,11 +13,10 @@ module.exports = async function handleSetNote(bot, chatId, text, state) {
     date: new Date(),
   };
 
-  await saveExpense({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    data: newExpense,
-  });
+  await Promise.all([
+    saveExpense({budgetId: BUDGET_ID, userId: chatId.toString(), data: newExpense}),
+    appendExpenseToSheet(newExpense),
+  ]);
 
   clearUserState(chatId);
   bot.api.sendMessage(chatId, 'Запис створено! Введіть нову суму для нового запису.');

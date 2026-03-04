@@ -19,6 +19,7 @@ app.use("/", webhookCallback(bot, "express", {
 }));
 
 exports.telegramWebhook = onRequest(
-    { region: "europe-west3", memory: "256MiB", minInstances: 0, invoker: "public" },
+    { region: "europe-west3", memory: "256MiB", minInstances: 0, invoker: "public",
+      secrets: ["TELEGRAM_BOT_TOKEN", "SECRET", "GOOGLE_SPREADSHEET_ID", "GOOGLE_SERVICE_ACCOUNT"] },
     app
 );

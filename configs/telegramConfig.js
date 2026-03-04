@@ -1,9 +1,6 @@
 const { Bot, webhookCallback } = require('grammy');
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-if (!TOKEN) throw new Error('TELEGRAM_BOT_TOKEN env is required');
-
-const bot = new Bot(TOKEN);
+const bot = new Bot(process.env.TELEGRAM_BOT_TOKEN || 'placeholder');
 
 // 1) Глобальний обробник помилок (щоб не падати мовчки)
 bot.catch((err) => {

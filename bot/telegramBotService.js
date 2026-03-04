@@ -12,7 +12,7 @@ function setupBotCommandsService() {
     {command: 'start', description: 'Розпочати введення витрати'},
     {command: 'month', description: 'Сума витрат за поточний місяць'},
     {command: 'cancel', description: 'Скасувати поточну дію'},
-  ]);
+  ]).catch(() => {});
 
   bot.command('start', async (ctx) => {
     const chatId = ctx.chat.id;

@@ -1,5 +1,6 @@
 const {v4: uuidv4} = require('uuid');
 const {getLastExpense, saveExpense} = require('../../utils/firebaseUtility');
+const {appendExpenseToSheet} = require('../../utils/googleSheetsUtility');
 const {clearUserState, setUserState} = require('../userState');
 const {BUDGET_ID} = require('../../configs/consts');
 
@@ -17,7 +18,10 @@ module.exports = async function handleConfirmCopy(bot, chatId, text, state) {
       date: new Date(),
     };
 
-    await saveExpense({budgetId, userId, data: newExpense});
+    await Promise.all([
+      saveExpense({budgetId, userId, data: newExpense}),
+      appendExpenseToSheet(newExpense),
+    ]);
     clearUserState(chatId);
     bot.api.sendMessage(chatId, 'Запис створено! Введіть нову суму для нового запису.');
   } else if (text.toLowerCase() === 'ні') {
