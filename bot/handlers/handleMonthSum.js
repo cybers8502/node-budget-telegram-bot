@@ -28,8 +28,19 @@ module.exports = async function handleMonthSum(bot, chatId) {
   const avgDaily = dayOfMonth > 0 ? total / dayOfMonth : 0;
   const projected = Math.round(avgDaily * daysInMonth);
 
+  let usdProjected = '';
+  let usdMonth = '';
+  try {
+    const res = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json');
+    const [usd] = await res.json();
+    usdProjected = ` (~$${Math.round(projected / usd.rate)})`;
+    usdMonth = ` (~$${Math.round(month / usd.rate)})`;
+  } catch {
+    // якщо НБУ недоступний — просто без конвертації
+  }
+
   bot.api.sendMessage(
     chatId,
-    `Витрати за ${month}: ${total}\nНа день: ${avgDaily}\nПрогноз на місяць: ${projected}`,
+    `Витрати за ${month}: ${usdMonth}\nНа день: ${Math.round(avgDaily)}\nПрогноз на місяць: ${projected}${usdProjected}`,
   );
 };

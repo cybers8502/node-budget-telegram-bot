@@ -7,7 +7,7 @@ const {BUDGET_ID} = require('../../configs/consts');
 module.exports = async function handleSetNote(bot, chatId, text, state) {
   const newExpense = {
     id: uuidv4(),
-    sum: state.sum,
+    sum: state.category === 'Дохід' ? -state.sum : state.sum,
     category: state.category,
     note: text,
     date: new Date(),
