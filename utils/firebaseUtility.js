@@ -33,4 +33,15 @@ async function getMonthExpenses({budgetId, userId, from, to}) {
   return snap.docs.map((d) => d.data());
 }
 
-module.exports = {saveExpense, getLastExpense, getMonthExpenses};
+async function updateExpense({budgetId, userId, expenseId, data}) {
+  const docRef = db
+    .collection('budgets')
+    .doc(budgetId)
+    .collection('users')
+    .doc(userId)
+    .collection('expenses')
+    .doc(expenseId);
+  await docRef.update(data);
+}
+
+module.exports = {saveExpense, getLastExpense, getMonthExpenses, updateExpense};
