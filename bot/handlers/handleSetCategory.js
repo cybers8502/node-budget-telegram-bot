@@ -1,5 +1,6 @@
 const {setUserState} = require('../userState');
 const categories = require('../categories');
+const banks = require('../banks');
 
 module.exports = function handleSetCategory(bot, chatId, text) {
   const index = Number(text) - 1;
@@ -9,6 +10,9 @@ module.exports = function handleSetCategory(bot, chatId, text) {
     return;
   }
 
-  setUserState(chatId, {step: 'set_note', category: categories[index]});
-  bot.api.sendMessage(chatId, 'Введіть короткий опис витрати (до 100 символів):');
+  setUserState(chatId, {step: 'set_bank', category: categories[index]});
+  bot.api.sendMessage(
+    chatId,
+    `Оберіть банк:\n` + banks.map((b, i) => `${i + 1}. ${b}`).join('\n'),
+  );
 };

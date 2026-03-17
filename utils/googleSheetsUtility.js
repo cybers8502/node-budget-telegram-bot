@@ -27,7 +27,7 @@ async function ensureSheet(sheets, spreadsheetId, sheetName) {
     spreadsheetId,
     range: `'${sheetName}'!A1`,
     valueInputOption: 'RAW',
-    requestBody: {values: [['Дата', 'Сума', 'Категорія', 'Примітка']]},
+    requestBody: {values: [['Дата', 'Сума', 'Повернення', 'Різниця', 'Категорія', 'Банк', 'Примітка']]},
   });
 }
 
@@ -48,7 +48,15 @@ async function appendExpenseToSheet(expense) {
     range: `'${sheetName}'!A1`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[date.toLocaleDateString('uk-UA'), expense.sum, expense.category || '', expense.note || '']],
+      values: [[
+        date.toLocaleDateString('uk-UA'),
+        expense.type !== 'income' ? expense.sum : '',
+        expense.type === 'income' ? expense.sum : '',
+        '',
+        expense.category || '',
+        expense.bank || '',
+        expense.note || '',
+      ]],
     },
   });
 }

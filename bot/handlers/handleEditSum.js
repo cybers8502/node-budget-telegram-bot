@@ -22,13 +22,12 @@ module.exports = async function handleEditSum(bot, chatId, text, state) {
   }
 
   const expense = state.expense;
-  const newSum = expense.category === 'Дохід' ? -sum : sum;
 
   await updateExpense({
     budgetId: BUDGET_ID,
     userId: chatId.toString(),
     expenseId: expense.id,
-    data: {sum: newSum},
+    data: {sum},
   });
 
   clearUserState(chatId);

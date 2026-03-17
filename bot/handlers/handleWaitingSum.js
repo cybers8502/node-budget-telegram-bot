@@ -1,4 +1,5 @@
 const {setUserState} = require('../userState');
+const categories = require('../categories');
 
 function evalArithmetic(expr) {
   if (!/^[\d\s+\-*/.()]+$/.test(expr)) return null;
@@ -19,6 +20,10 @@ module.exports = function handleWaitingSum(bot, chatId, text) {
     return;
   }
 
-  setUserState(chatId, {step: 'confirm_copy', sum});
-  bot.api.sendMessage(chatId, `Сума: ${sum}\nСкопіювати всі інші поля з попереднього запису? Відповідайте "так" або "ні".`);
+  setUserState(chatId, {step: 'set_category', sum});
+  bot.api.sendMessage(
+    chatId,
+    `Сума: ${sum}\nВиберіть категорію витрати (введіть цифру):\n` +
+      categories.map((cat, i) => `${i + 1}. ${cat}`).join('\n'),
+  );
 };

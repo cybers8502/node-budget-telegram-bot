@@ -13,14 +13,15 @@ module.exports = async function handleEditCategory(bot, chatId, text, state) {
 
   const expense = state.expense;
   const newCategory = categories[index];
-  const absSum = Math.abs(expense.sum);
-  const newSum = newCategory === 'Дохід' ? -absSum : absSum;
 
   await updateExpense({
     budgetId: BUDGET_ID,
     userId: chatId.toString(),
     expenseId: expense.id,
-    data: {category: newCategory, sum: newSum},
+    data: {
+      category: newCategory,
+      type: newCategory === 'Дохід' ? 'income' : 'expense',
+    },
   });
 
   clearUserState(chatId);

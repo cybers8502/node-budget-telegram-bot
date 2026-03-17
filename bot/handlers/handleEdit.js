@@ -24,6 +24,7 @@ module.exports = async function handleEdit(bot, chatId) {
     `Останній запис:\n` +
       `Сума: ${absSum} грн\n` +
       `Категорія: ${lastExpense.category}\n` +
+      `Банк: ${lastExpense.bank}\n` +
       `Опис: ${lastExpense.note}\n` +
       `Дата: ${dateStr}\n\n` +
       `Що змінити?\n1. Суму\n2. Категорію\n3. Нотатку`,

@@ -3,9 +3,9 @@ const {getUserState, clearUserState} = require('./userState');
 const handleStart = require('./handlers/handleStart');
 const handleMonthSum = require('./handlers/handleMonthSum');
 const handleWaitingSum = require('./handlers/handleWaitingSum');
-const handleConfirmCopy = require('./handlers/handleConfirmCopy');
 const handleSetCategory = require('./handlers/handleSetCategory');
 const handleSetNote = require('./handlers/handleSetNote');
+const handleSetBank = require('./handlers/handleSetBank');
 const handleEdit = require('./handlers/handleEdit');
 const handleEditChoose = require('./handlers/handleEditChoose');
 const handleEditSum = require('./handlers/handleEditSum');
@@ -54,11 +54,11 @@ function setupBotCommandsService() {
       case 'waiting_sum':
         return handleWaitingSum(bot, chatId, text);
 
-      case 'confirm_copy':
-        return handleConfirmCopy(bot, chatId, text, state);
-
       case 'set_category':
         return handleSetCategory(bot, chatId, text);
+
+      case 'set_bank':
+        return handleSetBank(bot, chatId, text);
 
       case 'set_note':
         return handleSetNote(bot, chatId, text, state);

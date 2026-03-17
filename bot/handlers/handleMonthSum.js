@@ -13,7 +13,10 @@ module.exports = async function handleMonthSum(bot, chatId) {
     to,
   });
 
-  const total = expenses.reduce((acc, e) => acc + (e.sum || 0), 0);
+  const total = expenses.reduce((acc, e) => {
+    if (!e.sum) return acc;
+    return e.type === 'income' ? acc - e.sum : acc + e.sum;
+  }, 0);
   const month = now.toLocaleString('uk-UA', {month: 'long', year: 'numeric'});
 
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -34,13 +37,13 @@ module.exports = async function handleMonthSum(bot, chatId) {
     const res = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json');
     const [usd] = await res.json();
     usdProjected = ` (~$${Math.round(projected / usd.rate)})`;
-    usdMonth = ` (~$${Math.round(month / usd.rate)})`;
+    usdMonth = ` (~$${Math.round(total / usd.rate)})`;
   } catch {
     // якщо НБУ недоступний — просто без конвертації
   }
 
   bot.api.sendMessage(
     chatId,
-    `Витрати за ${month}: ${usdMonth}\nНа день: ${Math.round(avgDaily)}\nПрогноз на місяць: ${projected}${usdProjected}`,
+    `Витрати за ${month}: ${total} ${usdMonth}\nНа день: ${Math.round(avgDaily)}\nПрогноз на місяць: ${projected}${usdProjected}`,
   );
 };

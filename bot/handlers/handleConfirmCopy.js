@@ -11,9 +11,11 @@ module.exports = async function handleConfirmCopy(bot, chatId, text, state) {
   if (text.toLowerCase() === 'так') {
     const lastExpense = await getLastExpense({budgetId, userId});
 
+    const isIncome = lastExpense?.type === 'income' || lastExpense?.category === 'Дохід';
     const newExpense = {
       ...(lastExpense || {}),
       id: uuidv4(),
+      type: isIncome ? 'income' : 'expense',
       sum: state.sum,
       date: new Date(),
     };
