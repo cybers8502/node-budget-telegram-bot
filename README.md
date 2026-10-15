@@ -91,7 +91,7 @@ npm install
 
 ## Commands
 
-All commands run from the `functions/` directory:
+All commands run from the `functions` directory:
 
 ```bash
 npm run lint    # ESLint check

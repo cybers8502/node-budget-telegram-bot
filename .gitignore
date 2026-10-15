@@ -1,0 +1,16 @@
+# Service-account key and local widget (contain credentials / personal ids)
+/my-budget-*.json
+/budget-widget.js
+
+# The rules open one user's expenses for public reads and name that user's chat id and the budget id;
+# with the project id from .firebaserc they would point at personal data, and this repository is public
+/firestore.rules
+/.firebaserc
+
+# Editors / OS
+.idea/
+.DS_Store
+
+# Firebase
+.firebase/
+firebase-debug*.log
