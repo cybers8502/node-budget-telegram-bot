@@ -16,6 +16,20 @@ export interface Expense {
   rate?: number;
 }
 
+// A monthly expense created automatically by the scheduled job (budgets/{id}/users/{chatId}/recurring/{id})
+export interface RecurringItem {
+  id: string;
+  day: number; // 1-31; short months use their last day
+  sum: number;
+  category: string;
+  bank: string | null;
+  note: string;
+  lastRun?: string; // 'YYYY-MM' of the last month it was created for
+  reminded?: string; // 'YYYY-MM' of the month the "charged tomorrow" reminder was sent for
+  payments?: number; // total number of payments of an installment plan; unset = open-ended subscription
+  paid?: number; // payments made so far (installments)
+}
+
 export type Step =
   | 'waiting_sum'
   | 'confirm_copy'

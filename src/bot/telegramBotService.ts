@@ -12,6 +12,7 @@ import handleDelete from './handlers/handleDelete';
 import handleEditSum from './handlers/handleEditSum';
 import handleLast, {handleRecordSelected} from './handlers/handleLast';
 import {handleLimits, handleSetLimit} from './handlers/handleLimits';
+import handleRecurring, {handleRecurringCallback, handleSubs} from './handlers/handleRecurring';
 import handleMonthSum from './handlers/handleMonthSum';
 import handleSetBank from './handlers/handleSetBank';
 import handleSetCategory from './handlers/handleSetCategory';
@@ -46,6 +47,8 @@ export default function setupBotCommandsService() {
       {command: 'last', description: 'Останні записи: редагувати або видалити'},
       {command: 'limits', description: 'Ліміти на категорії та поточні витрати'},
       {command: 'limit', description: 'Задати ліміт: /limit їжа 5000'},
+      {command: 'recurring', description: 'Підписки й розстрочки: додати або видалити'},
+      {command: 'subs', description: 'Усі підписки та розстрочки за цей місяць'},
       {command: 'ai', description: 'Запитати AI про витрати'},
       {command: 'cancel', description: 'Скасувати поточну дію'},
     ])
@@ -74,6 +77,14 @@ export default function setupBotCommandsService() {
 
   bot.command('limit', async (ctx) => {
     await handleSetLimit(bot, ctx.chat.id, ctx.match?.trim() ?? '');
+  });
+
+  bot.command('recurring', async (ctx) => {
+    await handleRecurring(bot, ctx.chat.id, ctx.match?.trim() ?? '');
+  });
+
+  bot.command('subs', async (ctx) => {
+    await handleSubs(bot, ctx.chat.id);
   });
 
   bot.command('ai', async (ctx) => {
@@ -109,6 +120,10 @@ export default function setupBotCommandsService() {
         return handleEditBank(bot, chatId, index, state);
       }
       return handleSetBank(bot, chatId, index);
+    }
+
+    if (data.startsWith('rcr:')) {
+      return handleRecurringCallback(bot, chatId, data.slice(4));
     }
 
     if (data.startsWith('flow:')) {

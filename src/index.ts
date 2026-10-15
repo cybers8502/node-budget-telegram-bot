@@ -1,8 +1,10 @@
 import express from 'express';
 import {onRequest} from 'firebase-functions/v2/https';
+import {onSchedule} from 'firebase-functions/v2/scheduler';
 import {webhookCallback} from 'grammy';
 import setupBotCommandsService from './bot/telegramBotService';
 import {bot} from './configs/telegramConfig';
+import {runRecurringJob} from './jobs/recurringJob';
 
 const app = express();
 app.use(express.json());
@@ -32,4 +34,17 @@ export const telegramWebhook = onRequest(
     secrets: ['TELEGRAM_BOT_TOKEN', 'SECRET', 'ANTHROPIC_API_KEY'],
   },
   app,
+);
+
+export const recurringExpenses = onSchedule(
+  {
+    schedule: '0 8 * * *',
+    timeZone: 'Europe/Kyiv',
+    region: 'europe-west3',
+    memory: '256MiB',
+    secrets: ['TELEGRAM_BOT_TOKEN'],
+  },
+  async () => {
+    await runRecurringJob();
+  },
 );

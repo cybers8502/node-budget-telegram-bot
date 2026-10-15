@@ -97,3 +97,9 @@ export async function deleteExpense({
 }): Promise<void> {
   await expensesCollection(budgetId, userId).doc(expenseId).delete();
 }
+
+// chat ids of everyone who has data (user documents exist only as parents of subcollections, so list refs)
+export async function listUserIds(budgetId: string): Promise<string[]> {
+  const refs = await db.collection('budgets').doc(budgetId).collection('users').listDocuments();
+  return refs.map((r) => r.id);
+}
