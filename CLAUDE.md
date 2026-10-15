@@ -45,13 +45,13 @@ Telegram → POST / → Express (src/index.ts) → webhookCallback (grammY) → 
 
 ### Conversation state machine
 
-Multi-step input is managed by an **in-memory `Map`** in `src/bot/userState.ts`. State is ephemeral per Cloud Function instance and is lost on cold starts or instance recycling (handlers handle a missing state by asking for the sum again).
+Multi-step input is managed in `src/bot/userState.ts`, which keeps the state in Firestore (`users/{chatId}/state/current`, expires after an hour), so it survives cold starts and instance recycling (handlers still handle a missing state by asking for the sum again). The helpers are async: always `await` them.
 
 Create flow: `waiting_sum` → `set_category` (inline buttons, `cat:<index>` from `src/bot/categories.ts`) → bank (inline buttons, `bank:<index>` from `src/bot/banks.ts`) → `set_note` (saves the expense).
 
-Edit flow (`/edit`): `edit_choose` → `edit_sum` / `edit_category` / `edit_note`.
+Edit flow (`/edit`, `/last`): `edit_choose` → `edit_sum` / `edit_category` / `edit_bank` / `edit_note`, or delete with confirmation (`del:`). `/ai` drafts wait in the `ai_confirm` step until the `ai:yes` button.
 
-`/start` resets state to `waiting_sum`; `/cancel` clears it. Callback queries are dispatched by their prefix (`cat:`, `bank:`, `edit:`, `rec:`, `del:`, `ai:`) in `telegramBotService.ts`.
+`/start` resets state to `waiting_sum`; `/cancel` clears it. Callback queries are dispatched by their prefix (`cat:`, `bank:`, `edit:`, `rec:`, `del:`, `rcr:`, `flow:`, `ai:`) in `telegramBotService.ts`.
 
 ### Scheduled functions
 
