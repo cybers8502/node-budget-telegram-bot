@@ -5,7 +5,9 @@ import handleEditBank from './handlers/handleEditBank';
 import handleEditCategory from './handlers/handleEditCategory';
 import handleEditChoose from './handlers/handleEditChoose';
 import handleEditNote from './handlers/handleEditNote';
+import handleDelete from './handlers/handleDelete';
 import handleEditSum from './handlers/handleEditSum';
+import handleLast, {handleRecordSelected} from './handlers/handleLast';
 import handleMonthSum from './handlers/handleMonthSum';
 import handleSetBank from './handlers/handleSetBank';
 import handleSetCategory from './handlers/handleSetCategory';
@@ -32,13 +34,16 @@ export default function setupBotCommandsService() {
     return next();
   });
 
-  bot.api.setMyCommands([
-    {command: 'start', description: 'Розпочати введення витрати'},
-    {command: 'month', description: 'Сума витрат за поточний місяць'},
-    {command: 'edit', description: 'Редагувати останній запис'},
-    {command: 'ai', description: 'Запитати AI про витрати'},
-    {command: 'cancel', description: 'Скасувати поточну дію'},
-  ]).catch(() => {});
+  bot.api
+    .setMyCommands([
+      {command: 'start', description: 'Розпочати введення витрати'},
+      {command: 'month', description: 'Сума витрат за поточний місяць'},
+      {command: 'edit', description: 'Редагувати останній запис'},
+      {command: 'last', description: 'Останні записи: редагувати або видалити'},
+      {command: 'ai', description: 'Запитати AI про витрати'},
+      {command: 'cancel', description: 'Скасувати поточну дію'},
+    ])
+    .catch(() => {});
 
   bot.command('start', async (ctx) => {
     const chatId = ctx.chat.id;
@@ -51,6 +56,10 @@ export default function setupBotCommandsService() {
 
   bot.command('edit', async (ctx) => {
     await handleEdit(bot, ctx.chat.id);
+  });
+
+  bot.command('last', async (ctx) => {
+    await handleLast(bot, ctx.chat.id);
   });
 
   bot.command('ai', async (ctx) => {
@@ -85,6 +94,14 @@ export default function setupBotCommandsService() {
         return handleEditBank(bot, chatId, index, state);
       }
       return handleSetBank(bot, chatId, index);
+    }
+
+    if (data.startsWith('rec:')) {
+      return handleRecordSelected(bot, chatId, data.slice(4));
+    }
+
+    if (data.startsWith('del:')) {
+      return handleDelete(bot, chatId, data.slice(4), state);
     }
 
     if (data.startsWith('edit:')) {

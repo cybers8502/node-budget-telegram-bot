@@ -1,9 +1,30 @@
 import type {Bot} from 'grammy';
 import {BUDGET_ID} from '../../configs/consts';
+import type {Expense} from '../../types';
 import {formatKyivDate, toJsDate} from '../../utils/date';
 import {getLastExpense} from '../../utils/firebaseUtility';
 import {editChooseKeyboard} from '../keyboards';
-import {clearUserState, setUserState} from '../userState';
+import {resetUserState} from '../userState';
+
+// Shows one record and the "what to change / delete" menu; the record is kept in the conversation state
+export async function showEditMenu(bot: Bot, chatId: number, expense: Expense) {
+  const absSum = Math.abs(expense.sum);
+  const dateStr = formatKyivDate(toJsDate(expense.date));
+
+  await resetUserState(chatId, {step: 'edit_choose', expense});
+
+  await bot.api.sendMessage(
+    chatId,
+    `Запис:\n` +
+      `Сума: ${absSum} грн\n` +
+      `Категорія: ${expense.category}\n` +
+      `Банк: ${expense.bank}\n` +
+      `Опис: ${expense.note}\n` +
+      `Дата: ${dateStr}\n\n` +
+      `Що змінити?`,
+    {reply_markup: editChooseKeyboard()},
+  );
+}
 
 export default async function handleEdit(bot: Bot, chatId: number) {
   const lastExpense = await getLastExpense({budgetId: BUDGET_ID, userId: chatId.toString()});
@@ -13,21 +34,5 @@ export default async function handleEdit(bot: Bot, chatId: number) {
     return;
   }
 
-  const absSum = Math.abs(lastExpense.sum);
-  const dateStr = formatKyivDate(toJsDate(lastExpense.date));
-
-  clearUserState(chatId);
-  setUserState(chatId, {step: 'edit_choose', expense: lastExpense});
-
-  await bot.api.sendMessage(
-    chatId,
-    `Останній запис:\n` +
-      `Сума: ${absSum} грн\n` +
-      `Категорія: ${lastExpense.category}\n` +
-      `Банк: ${lastExpense.bank}\n` +
-      `Опис: ${lastExpense.note}\n` +
-      `Дата: ${dateStr}\n\n` +
-      `Що змінити?`,
-    {reply_markup: editChooseKeyboard()},
-  );
+  await showEditMenu(bot, chatId, lastExpense);
 }

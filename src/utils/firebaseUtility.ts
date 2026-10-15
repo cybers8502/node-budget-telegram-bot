@@ -39,7 +39,10 @@ export async function getMonthExpenses({
   from: Date;
   to: Date;
 }): Promise<Expense[]> {
-  const snap = await expensesCollection(budgetId, userId).where('date', '>=', from).where('date', '<', to).get();
+  const snap = await expensesCollection(budgetId, userId)
+    .where('date', '>=', from)
+    .where('date', '<', to)
+    .get();
   return snap.docs.map((d) => d.data() as Expense);
 }
 
@@ -55,4 +58,42 @@ export async function updateExpense({
   data: Partial<Expense>;
 }): Promise<void> {
   await expensesCollection(budgetId, userId).doc(expenseId).update(data);
+}
+
+export async function getRecentExpenses({
+  budgetId,
+  userId,
+  limit,
+}: {
+  budgetId: string;
+  userId: string;
+  limit: number;
+}): Promise<Expense[]> {
+  const snap = await expensesCollection(budgetId, userId).orderBy('date', 'desc').limit(limit).get();
+  return snap.docs.map((d) => d.data() as Expense);
+}
+
+export async function getExpenseById({
+  budgetId,
+  userId,
+  expenseId,
+}: {
+  budgetId: string;
+  userId: string;
+  expenseId: string;
+}): Promise<Expense | null> {
+  const snap = await expensesCollection(budgetId, userId).doc(expenseId).get();
+  return snap.exists ? (snap.data() as Expense) : null;
+}
+
+export async function deleteExpense({
+  budgetId,
+  userId,
+  expenseId,
+}: {
+  budgetId: string;
+  userId: string;
+  expenseId: string;
+}): Promise<void> {
+  await expensesCollection(budgetId, userId).doc(expenseId).delete();
 }
