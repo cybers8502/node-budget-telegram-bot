@@ -12,7 +12,7 @@ export default async function handleEditBank(bot: Bot, chatId: number, index: nu
   }
 
   if (!state.expense) {
-    clearUserState(chatId);
+    await clearUserState(chatId);
     await bot.api.sendMessage(chatId, 'Стан було втрачено. Почніть заново: /edit');
     return;
   }
@@ -26,6 +26,6 @@ export default async function handleEditBank(bot: Bot, chatId: number, index: nu
     data: {bank: newBank},
   });
 
-  clearUserState(chatId);
+  await clearUserState(chatId);
   await bot.api.sendMessage(chatId, `Банк оновлено: ${newBank}. Введіть нову суму для нового запису.`);
 }

@@ -6,7 +6,7 @@ import {clearUserState} from '../userState';
 
 export default async function handleEditNote(bot: Bot, chatId: number, text: string, state: UserState) {
   if (!state.expense) {
-    clearUserState(chatId);
+    await clearUserState(chatId);
     await bot.api.sendMessage(chatId, 'Стан було втрачено. Почніть заново: /edit');
     return;
   }
@@ -18,6 +18,6 @@ export default async function handleEditNote(bot: Bot, chatId: number, text: str
     data: {note: text},
   });
 
-  clearUserState(chatId);
+  await clearUserState(chatId);
   await bot.api.sendMessage(chatId, 'Опис оновлено. Введіть нову суму для нового запису.');
 }

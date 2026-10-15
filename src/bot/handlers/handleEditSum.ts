@@ -13,7 +13,7 @@ export default async function handleEditSum(bot: Bot, chatId: number, text: stri
   }
 
   if (!state.expense) {
-    clearUserState(chatId);
+    await clearUserState(chatId);
     await bot.api.sendMessage(chatId, 'Стан було втрачено. Почніть заново: /edit');
     return;
   }
@@ -25,6 +25,6 @@ export default async function handleEditSum(bot: Bot, chatId: number, text: stri
     data: {sum},
   });
 
-  clearUserState(chatId);
+  await clearUserState(chatId);
   await bot.api.sendMessage(chatId, `Суму оновлено: ${sum} грн. Введіть нову суму для нового запису.`);
 }

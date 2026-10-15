@@ -12,7 +12,7 @@ export default async function handleEditCategory(bot: Bot, chatId: number, index
   }
 
   if (!state.expense) {
-    clearUserState(chatId);
+    await clearUserState(chatId);
     await bot.api.sendMessage(chatId, 'Стан було втрачено. Почніть заново: /edit');
     return;
   }
@@ -29,6 +29,9 @@ export default async function handleEditCategory(bot: Bot, chatId: number, index
     },
   });
 
-  clearUserState(chatId);
-  await bot.api.sendMessage(chatId, `Категорію оновлено: ${newCategory}. Введіть нову суму для нового запису.`);
+  await clearUserState(chatId);
+  await bot.api.sendMessage(
+    chatId,
+    `Категорію оновлено: ${newCategory}. Введіть нову суму для нового запису.`,
+  );
 }

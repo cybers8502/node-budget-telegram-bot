@@ -1,16 +1,45 @@
+import {FieldValue, Timestamp} from 'firebase-admin/firestore';
+import {BUDGET_ID} from '../configs/consts';
+import {db} from '../configs/firebaseConfig';
 import type {UserState} from '../types';
 
-export const userState = new Map<number, UserState>();
+// Conversation state lives in Firestore so it survives cold starts and instance recycling
+const STATE_TTL_MS = 60 * 60 * 1000;
 
-export function clearUserState(chatId: number): void {
-  userState.delete(chatId);
+const stateDoc = (chatId: number) =>
+  db
+    .collection('budgets')
+    .doc(BUDGET_ID)
+    .collection('users')
+    .doc(chatId.toString())
+    .collection('state')
+    .doc('current');
+
+export async function clearUserState(chatId: number): Promise<void> {
+  await stateDoc(chatId).delete();
 }
 
-export function getUserState(chatId: number): UserState | null {
-  return userState.get(chatId) || null;
+export async function getUserState(chatId: number): Promise<UserState | null> {
+  const snap = await stateDoc(chatId).get();
+  if (!snap.exists) return null;
+
+  const {updatedAt, ...state} = snap.data() as UserState & {
+    updatedAt?: Timestamp;
+  };
+  if (updatedAt && Date.now() - updatedAt.toMillis() > STATE_TTL_MS) return null;
+  return state;
 }
 
-export function setUserState(chatId: number, patch: UserState): void {
-  const current = userState.get(chatId) || {};
-  userState.set(chatId, {...current, ...patch});
+export async function setUserState(chatId: number, patch: UserState): Promise<void> {
+  const defined = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined));
+  await stateDoc(chatId).set({...defined, updatedAt: FieldValue.serverTimestamp()}, {merge: true});
+}
+
+// Replaces the whole state instead of merging, so nothing leaks from an abandoned flow
+export async function resetUserState(chatId: number, state: UserState): Promise<void> {
+  const defined = Object.fromEntries(Object.entries(state).filter(([, v]) => v !== undefined));
+  await stateDoc(chatId).set({
+    ...defined,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }

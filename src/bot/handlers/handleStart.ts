@@ -1,9 +1,11 @@
 import type {Bot} from 'grammy';
-import {clearUserState, setUserState} from '../userState';
+import {resetUserState} from '../userState';
 
-export default function handleStart(bot: Bot, chatId: number) {
-  clearUserState(chatId);
-  setUserState(chatId, {step: 'waiting_sum'});
+export default async function handleStart(bot: Bot, chatId: number) {
+  await resetUserState(chatId, {step: 'waiting_sum'});
 
-  return bot.api.sendMessage(chatId, 'Вітаю! Введіть суму витрат (ціле число).');
+  await bot.api.sendMessage(
+    chatId,
+    'Вітаю! Введіть суму витрат. Можна одразу з категорією, банком і описом: 250 продукти моно сільпо.',
+  );
 }

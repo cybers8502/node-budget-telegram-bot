@@ -60,14 +60,14 @@ export default function setupBotCommandsService() {
   bot.command('cancel', async (ctx) => {
     const chatId = ctx.chat.id;
     await ctx.reply('Охрана отмєна!');
-    clearUserState(chatId);
+    await clearUserState(chatId);
   });
 
   bot.on('callback_query:data', async (ctx) => {
     const chatId = ctx.chat?.id;
     if (chatId === undefined) return;
     const data = ctx.callbackQuery.data;
-    const state = getUserState(chatId);
+    const state = await getUserState(chatId);
 
     await ctx.answerCallbackQuery();
 
@@ -98,7 +98,7 @@ export default function setupBotCommandsService() {
     const text = ctx.message.text?.trim();
     if (!text || text.startsWith('/')) return;
 
-    const state = getUserState(chatId);
+    const state = await getUserState(chatId);
 
     if (!state || !state.step) {
       return handleWaitingSum(bot, chatId, text);
