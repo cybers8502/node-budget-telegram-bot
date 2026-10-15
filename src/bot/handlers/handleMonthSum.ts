@@ -7,11 +7,11 @@ import {
   kyivDayRange,
   kyivMonthRange,
   kyivParts,
+  kyivStartOf,
   toJsDate,
 } from '../../utils/date';
 import {getMonthExpenses} from '../../utils/firebaseUtility';
-
-const isIncome = (e: Expense) => e.type === 'income' || e.category === 'Дохід';
+import {formatChange, isIncome, netTotal, spentByCategory, untilDay} from '../../utils/monthStats';
 
 export default async function handleMonthSum(bot: Bot, chatId: number) {
   const now = new Date();
@@ -24,10 +24,15 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
     to,
   });
 
-  const total = expenses.reduce((acc, e) => {
-    if (!e.sum) return acc;
-    return isIncome(e) ? acc - e.sum : acc + e.sum;
-  }, 0);
+  const total = netTotal(expenses);
+
+  const {year, month: monthIndex, day: dayOfMonth} = kyivParts(now);
+  const prevExpenses = await getMonthExpenses({
+    budgetId: BUDGET_ID,
+    userId: chatId.toString(),
+    from: kyivStartOf(year, monthIndex - 1, 1),
+    to: from,
+  });
   const month = formatKyivMonth(now);
 
   const {from: todayStart, to: todayEnd} = kyivDayRange(now);
@@ -38,17 +43,14 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
     })
     .reduce((acc, e) => acc + (e.sum || 0), 0);
 
-  const dayOfMonth = kyivParts(now).day;
   const daysInMonth = daysInKyivMonth(now);
   const avgDaily = dayOfMonth > 0 ? total / dayOfMonth : 0;
   const projected = Math.round(avgDaily * daysInMonth);
 
   // Топ категорій
   const onlyExpenses = expenses.filter((e) => !isIncome(e) && e.sum);
-  const byCat: Record<string, number> = {};
-  for (const e of onlyExpenses) {
-    byCat[e.category] = (byCat[e.category] || 0) + e.sum;
-  }
+  const byCat = spentByCategory(expenses);
+  const prevByCat = spentByCategory(prevExpenses);
   const topCats = Object.entries(byCat)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3);
@@ -73,7 +75,12 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
   const topCatsText =
     topCats.length > 0
       ? '\n\nТоп категорій:\n' +
-        topCats.map(([cat, sum], i) => `${i + 1}. ${cat} — ${Math.round(sum)}`).join('\n')
+        topCats
+          .map(([cat, sum], i) => {
+            const change = formatChange(sum, prevByCat[cat] || 0);
+            return `${i + 1}. ${cat} — ${Math.round(sum)}${change ? ` (${change})` : ''}`;
+          })
+          .join('\n')
       : '';
 
   const biggestText = biggest
@@ -83,8 +90,16 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
   const txText =
     onlyExpenses.length > 0 ? `\nТранзакцій: ${onlyExpenses.length}, середня: ${Math.round(avgTx)}` : '';
 
+  // Same point of the previous month vs. this month so far, plus last month's full total
+  let prevText = '';
+  if (prevExpenses.length > 0) {
+    const prevToDate = netTotal(untilDay(prevExpenses, dayOfMonth));
+    const change = formatChange(total, prevToDate);
+    prevText = `\nМинулий місяць: ${Math.round(netTotal(prevExpenses))}, до цього дня: ${Math.round(prevToDate)}${change ? ` (зараз ${change})` : ''}`;
+  }
+
   await bot.api.sendMessage(
     chatId,
-    `Витрати за ${month}: ${Math.round(total)}${usdMonth}\nСьогодні: ${Math.round(todayTotal)}\nНа день (середнє): ${Math.round(avgDaily)}\nПрогноз на місяць: ${projected}${usdProjected}${topCatsText}${biggestText}${txText}`,
+    `Витрати за ${month}: ${Math.round(total)}${usdMonth}${prevText}\nСьогодні: ${Math.round(todayTotal)}\nНа день (середнє): ${Math.round(avgDaily)}\nПрогноз на місяць: ${projected}${usdProjected}${topCatsText}${biggestText}${txText}`,
   );
 }
