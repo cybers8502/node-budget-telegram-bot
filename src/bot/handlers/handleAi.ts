@@ -1,14 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type {Bot} from 'grammy';
-import {
-  CLAUDE_MODEL,
-  MAX_OUTPUT_TOKENS,
-  MAX_TOOL_ITERATIONS,
-  TURN_TOKEN_LIMIT,
-} from '../../configs/aiConfig';
+import {CLAUDE_MODEL, MAX_OUTPUT_TOKENS, MAX_TOOL_ITERATIONS, TURN_TOKEN_LIMIT} from '../../configs/aiConfig';
 import {BUDGET_ID} from '../../configs/consts';
 import type {Expense} from '../../types';
-import {toJsDate} from '../../utils/date';
+import {formatKyivIso, parseKyivDate, toJsDate} from '../../utils/date';
 import {getMonthExpenses} from '../../utils/firebaseUtility';
 import categories from '../categories';
 
@@ -25,14 +20,20 @@ const tools: Anthropic.Tool[] = [
   {
     name: 'get_expenses',
     description:
-      'Get the user\'s own expense/income records for a date range (read-only). Returns totals per category ' +
+      "Get the user's own expense/income records for a date range (read-only). Returns totals per category " +
       'and the individual records (newest first, capped). Income has category "Дохід".',
     input_schema: {
       type: 'object',
       properties: {
-        from: {type: 'string', description: 'Start date inclusive, YYYY-MM-DD'},
+        from: {
+          type: 'string',
+          description: 'Start date inclusive, YYYY-MM-DD',
+        },
         to: {type: 'string', description: 'End date exclusive, YYYY-MM-DD'},
-        category: {type: 'string', description: 'Optional category filter, exactly as in the category list'},
+        category: {
+          type: 'string',
+          description: 'Optional category filter, exactly as in the category list',
+        },
       },
       required: ['from', 'to'],
       additionalProperties: false,
@@ -49,9 +50,9 @@ interface GetExpensesInput {
 const isIncome = (e: Expense) => e.type === 'income' || e.category === 'Дохід';
 
 async function getExpenses(chatId: number, {from, to, category}: GetExpensesInput) {
-  const startDate = new Date(from);
-  const endDate = new Date(to);
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+  const startDate = parseKyivDate(from);
+  const endDate = parseKyivDate(to);
+  if (!startDate || !endDate) {
     throw new Error('Invalid date, use YYYY-MM-DD');
   }
 
@@ -78,7 +79,7 @@ async function getExpenses(chatId: number, {from, to, category}: GetExpensesInpu
     total_income: Math.round(income),
     by_category: byCategory,
     records: expenses.slice(0, MAX_ROWS).map((e) => ({
-      date: toJsDate(e.date).toISOString().slice(0, 10),
+      date: formatKyivIso(toJsDate(e.date)),
       sum: e.sum,
       category: e.category,
       note: e.note,
@@ -96,12 +97,12 @@ async function runTool(chatId: number, name: string, input: unknown) {
 function buildSystemPrompt() {
   return [
     'You are a personal finance assistant inside a Telegram expense-tracking bot.',
-    'Answer the user\'s question about their own expenses in Ukrainian, briefly: replies are read on a phone.',
+    "Answer the user's question about their own expenses in Ukrainian, briefly: replies are read on a phone.",
     'Use plain text without markdown. Amounts are in UAH.',
-    `Today is ${new Date().toISOString().slice(0, 10)}.`,
+    `Today is ${formatKyivIso(new Date())}.`,
     `Expense categories: ${categories.join(', ')}.`,
     'Use the get_expenses tool for any figure; never invent numbers.',
-    'If the question is not about the user\'s budget, say briefly that you only help with expenses.',
+    "If the question is not about the user's budget, say briefly that you only help with expenses.",
   ].join('\n');
 }
 
@@ -133,7 +134,11 @@ async function ask(chatId: number, question: string): Promise<string> {
         if (block.type !== 'tool_use') continue;
         try {
           const result = await runTool(chatId, block.name, block.input);
-          toolResults.push({type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(result)});
+          toolResults.push({
+            type: 'tool_result',
+            tool_use_id: block.id,
+            content: JSON.stringify(result),
+          });
         } catch (err) {
           toolResults.push({
             type: 'tool_result',

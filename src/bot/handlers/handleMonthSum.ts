@@ -1,15 +1,21 @@
 import type {Bot} from 'grammy';
 import {BUDGET_ID} from '../../configs/consts';
 import type {Expense} from '../../types';
-import {toJsDate} from '../../utils/date';
+import {
+  daysInKyivMonth,
+  formatKyivMonth,
+  kyivDayRange,
+  kyivMonthRange,
+  kyivParts,
+  toJsDate,
+} from '../../utils/date';
 import {getMonthExpenses} from '../../utils/firebaseUtility';
 
 const isIncome = (e: Expense) => e.type === 'income' || e.category === 'Дохід';
 
 export default async function handleMonthSum(bot: Bot, chatId: number) {
   const now = new Date();
-  const from = new Date(now.getFullYear(), now.getMonth(), 1);
-  const to = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const {from, to} = kyivMonthRange(now);
 
   const expenses = await getMonthExpenses({
     budgetId: BUDGET_ID,
@@ -22,10 +28,9 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
     if (!e.sum) return acc;
     return isIncome(e) ? acc - e.sum : acc + e.sum;
   }, 0);
-  const month = now.toLocaleString('uk-UA', {month: 'long', year: 'numeric'});
+  const month = formatKyivMonth(now);
 
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const {from: todayStart, to: todayEnd} = kyivDayRange(now);
   const todayTotal = expenses
     .filter((e) => {
       const d = toJsDate(e.date);
@@ -33,8 +38,8 @@ export default async function handleMonthSum(bot: Bot, chatId: number) {
     })
     .reduce((acc, e) => acc + (e.sum || 0), 0);
 
-  const dayOfMonth = now.getDate();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dayOfMonth = kyivParts(now).day;
+  const daysInMonth = daysInKyivMonth(now);
   const avgDaily = dayOfMonth > 0 ? total / dayOfMonth : 0;
   const projected = Math.round(avgDaily * daysInMonth);
 

@@ -1,6 +1,6 @@
 import type {Bot} from 'grammy';
 import {BUDGET_ID} from '../../configs/consts';
-import {toJsDate} from '../../utils/date';
+import {formatKyivDate, toJsDate} from '../../utils/date';
 import {getLastExpense} from '../../utils/firebaseUtility';
 import {editChooseKeyboard} from '../keyboards';
 import {clearUserState, setUserState} from '../userState';
@@ -14,7 +14,7 @@ export default async function handleEdit(bot: Bot, chatId: number) {
   }
 
   const absSum = Math.abs(lastExpense.sum);
-  const dateStr = toJsDate(lastExpense.date).toLocaleDateString('uk-UA');
+  const dateStr = formatKyivDate(toJsDate(lastExpense.date));
 
   clearUserState(chatId);
   setUserState(chatId, {step: 'edit_choose', expense: lastExpense});
