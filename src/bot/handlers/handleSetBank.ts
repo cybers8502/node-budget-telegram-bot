@@ -1,12 +1,23 @@
 import type {Bot} from 'grammy';
 import banks from '../banks';
-import {setUserState} from '../userState';
+import {getUserState, setUserState} from '../userState';
+import saveNewExpense from './saveNewExpense';
 
-export default function handleSetBank(bot: Bot, chatId: number, index: number) {
+export default async function handleSetBank(bot: Bot, chatId: number, index: number) {
   if (index < 0 || index >= banks.length) {
-    return bot.api.sendMessage(chatId, 'Невідомий банк. Спробуйте ще раз.');
+    await bot.api.sendMessage(chatId, 'Невідомий банк. Спробуйте ще раз.');
+    return;
   }
 
-  setUserState(chatId, {step: 'set_note', bank: banks[index]});
-  return bot.api.sendMessage(chatId, 'Введіть короткий опис витрати (до 100 символів):');
+  const bank = banks[index];
+  const state = await getUserState(chatId);
+
+  // Quick input already carries the description
+  if (state?.note !== undefined) {
+    await saveNewExpense(bot, chatId, {...state, bank}, state.note);
+    return;
+  }
+
+  await setUserState(chatId, {step: 'set_note', bank});
+  await bot.api.sendMessage(chatId, 'Введіть короткий опис витрати (до 100 символів):');
 }

@@ -29,5 +29,6 @@ export interface UserState {
   sum?: number;
   category?: string;
   bank?: string;
+  note?: string; // set by quick input: the expense is saved as soon as category and bank are known
   expense?: Expense;
 }
