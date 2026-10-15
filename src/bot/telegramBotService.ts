@@ -2,6 +2,7 @@ import {bot} from '../configs/telegramConfig';
 import {clearAiHistory} from '../utils/aiStore';
 import handleAi from './handlers/handleAi';
 import handleAiConfirm from './handlers/handleAiConfirm';
+import handleDigest from './handlers/handleDigest';
 import handleEdit from './handlers/handleEdit';
 import handleFlow from './handlers/handleFlow';
 import handleEditBank from './handlers/handleEditBank';
@@ -49,6 +50,7 @@ export default function setupBotCommandsService() {
       {command: 'limit', description: 'Задати ліміт: /limit їжа 5000'},
       {command: 'recurring', description: 'Підписки й розстрочки: додати або видалити'},
       {command: 'subs', description: 'Усі підписки та розстрочки за цей місяць'},
+      {command: 'digest', description: 'Тижневий дайджест: /digest on або off'},
       {command: 'ai', description: 'Запитати AI про витрати'},
       {command: 'cancel', description: 'Скасувати поточну дію'},
     ])
@@ -81,6 +83,10 @@ export default function setupBotCommandsService() {
 
   bot.command('recurring', async (ctx) => {
     await handleRecurring(bot, ctx.chat.id, ctx.match?.trim() ?? '');
+  });
+
+  bot.command('digest', async (ctx) => {
+    await handleDigest(bot, ctx.chat.id, ctx.match?.trim() ?? '');
   });
 
   bot.command('subs', async (ctx) => {

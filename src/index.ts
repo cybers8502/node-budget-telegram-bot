@@ -4,6 +4,7 @@ import {onSchedule} from 'firebase-functions/v2/scheduler';
 import {webhookCallback} from 'grammy';
 import setupBotCommandsService from './bot/telegramBotService';
 import {bot} from './configs/telegramConfig';
+import {runDigestJob} from './jobs/digestJob';
 import {runRecurringJob} from './jobs/recurringJob';
 
 const app = express();
@@ -46,5 +47,18 @@ export const recurringExpenses = onSchedule(
   },
   async () => {
     await runRecurringJob();
+  },
+);
+
+export const weeklyDigest = onSchedule(
+  {
+    schedule: '0 9 * * 1',
+    timeZone: 'Europe/Kyiv',
+    region: 'europe-west3',
+    memory: '256MiB',
+    secrets: ['TELEGRAM_BOT_TOKEN'],
+  },
+  async () => {
+    await runDigestJob();
   },
 );
