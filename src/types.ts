@@ -10,6 +10,10 @@ export interface Expense {
   bank?: string | null;
   note?: string;
   date: Date | Timestamp;
+  // Set when entered in a foreign currency: `sum` is always UAH, converted at the NBU rate of that day
+  currency?: string;
+  originalSum?: number;
+  rate?: number;
 }
 
 export type Step =
@@ -30,6 +34,7 @@ export interface UserState {
   sum?: number;
   category?: string;
   bank?: string;
+  foreign?: {currency: string; amount: number; rate: number}; // original amount of a foreign-currency entry
   note?: string; // set by quick input: the expense is saved as soon as category and bank are known
   expense?: Expense;
 }

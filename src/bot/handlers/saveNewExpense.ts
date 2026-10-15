@@ -21,13 +21,21 @@ export default async function saveNewExpense(bot: Bot, chatId: number, state: Us
     bank: state.bank || null,
     note,
     date: new Date(),
+    ...(state.foreign && {
+      currency: state.foreign.currency,
+      originalSum: state.foreign.amount,
+      rate: state.foreign.rate,
+    }),
   };
 
   await saveExpense({budgetId: BUDGET_ID, userId: chatId.toString(), data: newExpense});
   await clearUserState(chatId);
   const warning = await limitWarningFor(chatId, newExpense);
 
-  const summary = [`${state.sum} грн`, state.category, state.bank, note].filter(Boolean).join(' · ');
+  const sumText = state.foreign
+    ? `${state.foreign.amount} ${state.foreign.currency} ≈ ${state.sum} грн`
+    : `${state.sum} грн`;
+  const summary = [sumText, state.category, state.bank, note].filter(Boolean).join(' · ');
   await bot.api.sendMessage(
     chatId,
     `Запис створено: ${summary}${warning ? `\n${warning}` : ''}\nВведіть нову суму для нового запису.`,

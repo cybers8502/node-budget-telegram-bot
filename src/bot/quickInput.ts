@@ -1,3 +1,4 @@
+import type {ForeignCurrency} from '../utils/currency';
 import {evalArithmetic} from '../utils/evalArithmetic';
 import banks from './banks';
 import categories from './categories';
@@ -7,6 +8,7 @@ export interface QuickEntry {
   category?: string;
   bank?: string;
   note: string;
+  currency?: ForeignCurrency; // the sum is in this currency, not in UAH
 }
 
 const MAX_NOTE_LENGTH = 100;
@@ -24,6 +26,16 @@ const categoryAliases: Record<string, string[]> = {
   Підписка: ['підписки'],
   Дохід: ['зарплата', 'зп', 'аванс'],
 };
+
+const currencyWords: Record<ForeignCurrency, string[]> = {
+  USD: ['usd', '$', 'долар', 'долара', 'доларів', 'дол'],
+  EUR: ['eur', '€', 'євро'],
+};
+
+function findCurrency(word: string): ForeignCurrency | undefined {
+  const w = word.toLowerCase();
+  return (Object.keys(currencyWords) as ForeignCurrency[]).find((c) => currencyWords[c].includes(w));
+}
 
 const bankAliases: Record<string, string[]> = {
   Моно: ['mono', 'monobank'],
@@ -63,15 +75,25 @@ function parseSum(text: string): {sum: number; rest: string} | null {
 
 // "250 продукти моно сільпо" -> {sum: 250, category: 'Їжа', bank: 'Моно', note: 'сільпо'}
 export function parseQuickInput(text: string): QuickEntry | null {
-  const parsed = parseSum(text.trim());
+  // "20$ кафе" and "20usd кафе": split the glued currency off the amount
+  const spaced = text.trim().replace(/^([\d.+\-*/()\s]*\d)\s*(\$|€|usd|eur)(?![\p{L}])/iu, '$1 $2 ');
+  const parsed = parseSum(spaced);
   if (!parsed) return null;
 
   const words = parsed.rest.split(/\s+/).filter(Boolean);
   let category: string | undefined;
   let bank: string | undefined;
+  let currency: ForeignCurrency | undefined;
   const noteWords: string[] = [];
 
   for (const word of words) {
+    if (!currency) {
+      const found = findCurrency(word);
+      if (found) {
+        currency = found;
+        continue;
+      }
+    }
     if (!category) {
       const found = findOption(word, categories, categoryAliases, true);
       if (found) {
@@ -94,5 +116,6 @@ export function parseQuickInput(text: string): QuickEntry | null {
     category,
     bank,
     note: noteWords.join(' ').slice(0, MAX_NOTE_LENGTH),
+    currency,
   };
 }

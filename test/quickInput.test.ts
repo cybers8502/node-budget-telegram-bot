@@ -57,3 +57,22 @@ describe('parseQuickInput', () => {
     expect(parseQuickInput('')).toBeNull();
   });
 });
+
+describe('parseQuickInput currency', () => {
+  it('recognises currency words and symbols', () => {
+    expect(parseQuickInput('20 usd кафе')).toMatchObject({sum: 20, currency: 'USD', category: 'Кафе'});
+    expect(parseQuickInput('15 євро їжа')).toMatchObject({sum: 15, currency: 'EUR', category: 'Їжа'});
+    expect(parseQuickInput('100 $')).toMatchObject({sum: 100, currency: 'USD', note: ''});
+  });
+
+  it('splits a currency glued to the amount', () => {
+    expect(parseQuickInput('20$ кафе')).toMatchObject({sum: 20, currency: 'USD', category: 'Кафе'});
+    expect(parseQuickInput('15€')).toMatchObject({sum: 15, currency: 'EUR'});
+    expect(parseQuickInput('50+30usd')).toMatchObject({sum: 80, currency: 'USD'});
+  });
+
+  it('leaves UAH entries and unrelated words alone', () => {
+    expect(parseQuickInput('250 кафе').currency).toBeUndefined();
+    expect(parseQuickInput('100 usdt')).toMatchObject({note: 'usdt'});
+  });
+});
