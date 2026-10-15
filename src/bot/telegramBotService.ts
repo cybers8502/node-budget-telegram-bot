@@ -1,4 +1,5 @@
 import {bot} from '../configs/telegramConfig';
+import {clearAiHistory} from '../utils/aiStore';
 import handleAi from './handlers/handleAi';
 import handleAiConfirm from './handlers/handleAiConfirm';
 import handleEdit from './handlers/handleEdit';
@@ -71,6 +72,7 @@ export default function setupBotCommandsService() {
     const chatId = ctx.chat.id;
     await ctx.reply('Охрана отмєна!');
     await clearUserState(chatId);
+    await clearAiHistory(chatId);
   });
 
   bot.on('callback_query:data', async (ctx) => {

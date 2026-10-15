@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type {Bot} from 'grammy';
 import {CLAUDE_MODEL, MAX_OUTPUT_TOKENS, MAX_TOOL_ITERATIONS, TURN_TOKEN_LIMIT} from '../../configs/aiConfig';
 import type {Expense} from '../../types';
+import {appendAiHistory, consumeAiQuota, getAiHistory} from '../../utils/aiStore';
 import {formatKyivDate, formatKyivIso, toJsDate} from '../../utils/date';
 import {type ToolContext, runTool, tools} from '../ai/tools';
 import categories from '../categories';
@@ -37,7 +38,14 @@ interface Answer {
 }
 
 async function ask(chatId: number, question: string): Promise<Answer> {
-  const messages: Anthropic.MessageParam[] = [{role: 'user', content: question}];
+  const history = await getAiHistory(chatId);
+  const messages: Anthropic.MessageParam[] = [
+    ...history.flatMap<Anthropic.MessageParam>((t) => [
+      {role: 'user', content: t.q},
+      {role: 'assistant', content: t.a},
+    ]),
+    {role: 'user', content: question},
+  ];
   const ctx: ToolContext = {chatId};
   let tokensUsed = 0;
 
@@ -46,12 +54,20 @@ async function ask(chatId: number, question: string): Promise<Answer> {
       model: CLAUDE_MODEL,
       max_tokens: MAX_OUTPUT_TOKENS,
       output_config: {effort: 'low'},
+      // Caches tools + system + the growing tool-loop history between iterations
+      cache_control: {type: 'ephemeral'},
       system: buildSystemPrompt(),
       tools,
       messages,
     });
 
     tokensUsed += response.usage.input_tokens + response.usage.output_tokens;
+    console.info('AI usage', {
+      input: response.usage.input_tokens,
+      output: response.usage.output_tokens,
+      cacheRead: response.usage.cache_read_input_tokens,
+      cacheWrite: response.usage.cache_creation_input_tokens,
+    });
 
     if (response.stop_reason === 'refusal') return {text: 'Не можу відповісти на це запитання.'};
 
@@ -111,6 +127,10 @@ export default async function handleAi(bot: Bot, chatId: number, question?: stri
     );
   }
 
+  if (!(await consumeAiQuota(chatId))) {
+    return bot.api.sendMessage(chatId, 'Денний ліміт запитів до AI вичерпано, спробуйте завтра.');
+  }
+
   bot.api.sendChatAction(chatId, 'typing').catch(() => {});
 
   let answer: Answer;
@@ -125,6 +145,10 @@ export default async function handleAi(bot: Bot, chatId: number, question?: stri
         : 'Помилка AI, спробуйте пізніше.',
     );
   }
+
+  await appendAiHistory(chatId, {q: question, a: answer.text}).catch((err) =>
+    console.error('AI history error:', err),
+  );
 
   if (!answer.draft) return bot.api.sendMessage(chatId, answer.text.slice(0, TELEGRAM_MESSAGE_LIMIT));
 
