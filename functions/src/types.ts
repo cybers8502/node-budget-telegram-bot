@@ -32,7 +32,6 @@ export interface RecurringItem {
 
 export type Step =
   | 'waiting_sum'
-  | 'confirm_copy'
   | 'set_category'
   | 'set_bank'
   | 'set_note'

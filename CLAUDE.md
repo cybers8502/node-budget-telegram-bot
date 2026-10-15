@@ -47,7 +47,7 @@ Telegram → POST / → Express (src/index.ts) → webhookCallback (grammY) → 
 
 Multi-step input is managed by an **in-memory `Map`** in `src/bot/userState.ts`. State is ephemeral per Cloud Function instance and is lost on cold starts or instance recycling (handlers handle a missing state by asking for the sum again).
 
-Create flow: `waiting_sum` → `confirm_copy` (copy fields from the last expense) → `set_category` (inline buttons, `cat:<index>` from `src/bot/categories.ts`) → bank (inline buttons, `bank:<index>` from `src/bot/banks.ts`) → `set_note` (saves the expense).
+Create flow: `waiting_sum` → `set_category` (inline buttons, `cat:<index>` from `src/bot/categories.ts`) → bank (inline buttons, `bank:<index>` from `src/bot/banks.ts`) → `set_note` (saves the expense).
 
 Edit flow (`/edit`): `edit_choose` → `edit_sum` / `edit_category` / `edit_note`.
 

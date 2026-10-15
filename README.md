@@ -24,15 +24,14 @@ functions/
     handlers/
       handleStart.js         # /start command
       handleWaitingSum.js    # Step 1: amount input
-      handleConfirmCopy.js   # Step 2: copy previous fields
-      handleSetCategory.js   # Step 3: category selection
-      handleSetNote.js       # Step 4: description + save to Firestore
+      handleSetCategory.js   # Step 2: category selection
+      handleSetNote.js       # Step 3: description + save to Firestore
       handleMonthSum.js      # /month command: monthly summary
   configs/
     consts.js                # BUDGET_ID constant
     firebaseConfig.js        # Firebase app initialization
   utils/
-    logger.js                # Logging utility
+    firebaseUtility.js       # Firestore helpers
 ```
 
 ## Conversation Flow
@@ -40,9 +39,8 @@ functions/
 User interactions follow a linear state machine:
 
 1. **`waiting_sum`** — User enters a numeric amount or arithmetic expression (e.g. `100`, `50+30`, `200/4`)
-2. **`confirm_copy`** — User answers `так` / `ні` to copy category and note from the last expense
-3. **`set_category`** — User picks a category by number from the list
-4. **`set_note`** — User types a short description; expense is saved to Firestore
+2. **`set_category`** — User picks a category by number from the list
+3. **`set_note`** — User types a short description; expense is saved to Firestore
 
 Commands:
 - `/start` — Reset state, begin a new expense entry
