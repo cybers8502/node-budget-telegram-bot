@@ -183,6 +183,6 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=<FUNCTION_URL>&secret_token=<
 ## Notes
 
 - Amounts are stored in UAH. For a foreign-currency entry, `sum` is the UAH equivalent at that day's NBU rate and the original amount is kept next to it.
-- Editing the amount of such a record with `/edit` changes `sum` only.
+- Editing the amount of such a record with `/edit` takes the new amount in UAH, keeps the stored rate and recalculates the original amount.
 - A recurring item added after its day of the month has passed starts next month. Days 29 to 31 use the last day of shorter months.
 - Errors that the bot catches are reported in Telegram. For crashes and failed deploys, add a Cloud Monitoring alert on 5xx responses of the three functions.

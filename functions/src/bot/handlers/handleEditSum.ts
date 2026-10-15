@@ -22,7 +22,11 @@ export default async function handleEditSum(bot: Bot, chatId: number, text: stri
     budgetId: BUDGET_ID,
     userId: chatId.toString(),
     expenseId: state.expense.id,
-    data: {sum},
+    // A foreign-currency record keeps its rate; the original amount follows the new UAH sum
+    data: {
+      sum,
+      ...(state.expense.rate && {originalSum: Math.round((sum / state.expense.rate) * 100) / 100}),
+    },
   });
 
   await clearUserState(chatId);
