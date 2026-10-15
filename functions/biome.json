@@ -15,24 +15,11 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
-    "lineWidth": 80,
+    "lineWidth": 110,
     "attributePosition": "auto"
   },
   "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "performance": {
-        "noImgElement": "off"
-      },
-      "suspicious": {
-        "noArrayIndexKey": "off"
-      }
-    },
-    "domains": {
-      "next": "recommended",
-      "react": "recommended"
-    }
+    "enabled": false
   },
   "assist": {
     "actions": {
@@ -48,15 +35,10 @@
       "trailingCommas": "all",
       "semicolons": "always",
       "arrowParentheses": "always",
-      "bracketSpacing": true,
+      "bracketSpacing": false,
       "bracketSameLine": false,
       "quoteStyle": "single",
       "attributePosition": "auto"
-    }
-  },
-  "css": {
-    "parser": {
-      "cssModules": true
     }
   }
 }

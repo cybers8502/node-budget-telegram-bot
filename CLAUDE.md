@@ -21,7 +21,7 @@ npm test           # Vitest unit tests (test/): arithmetic, quick input, Kyiv da
 npm run logs       # Tail Firebase function logs
 ```
 
-No linter script is configured; type errors are caught by `npm run build` (`tsc`, strict mode). Formatting is done by Biome via the husky pre-commit hook (`lint-staged` runs `biome format --write`).
+No linter script is configured; type errors are caught by `npm run build` (`tsc`, strict mode). Formatting is done by Biome via the husky pre-commit hook (`lint-staged` runs `biome format --write`). The hook is active after a one-time `git config core.hooksPath functions/.husky/_` (husky lives in `functions/`, so `npm install` does not set it).
 
 ## Architecture
 
@@ -94,7 +94,7 @@ For the local emulator, put secrets in `functions/.secret.local` (git-ignored an
 
 ### Code style
 
-Single quotes, semicolons, trailing commas, `bracketSpacing: false` (`{a, b}`), 2-space indent, ES module `import`/`export` syntax (compiled to CommonJS; handlers use `export default`). `.prettierrc` sets 110-char width; `biome.json` (used by the pre-commit hook) sets 80, so expect Biome to reflow staged files. Match the surrounding code's style. User-facing bot text is in Ukrainian.
+Single quotes, semicolons, trailing commas, `bracketSpacing: false` (`{a, b}`), 2-space indent, ES module `import`/`export` syntax (compiled to CommonJS; handlers use `export default`). `biome.json` and `.prettierrc` agree (110 width, no bracket spacing). Match the surrounding code's style. User-facing bot text is in Ukrainian.
 
 ### Dependency caveats
 

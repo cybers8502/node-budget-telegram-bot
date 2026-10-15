@@ -1,1 +1,1 @@
-npm exec lint-staged
+cd functions && npm exec lint-staged
