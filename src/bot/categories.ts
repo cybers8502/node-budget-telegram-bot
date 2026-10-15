@@ -1,4 +1,4 @@
-module.exports = [
+const categories = [
   'Їжа',
   'Дім/Ремонт',
   'Техніка',
@@ -20,3 +20,5 @@ module.exports = [
   'Дохід',
   'Інше',
 ];
+
+export default categories;

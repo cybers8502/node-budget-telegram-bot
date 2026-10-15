@@ -56,3 +56,9 @@ Thumbs.db
 *.wmv
 !/.env.production
 /.env.production
+
+# Local secrets
+.secret.local
+
+# TypeScript build output
+lib/

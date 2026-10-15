@@ -1,22 +1,23 @@
-const {google} = require('googleapis');
+import {type sheets_v4, google} from 'googleapis';
+import type {Expense} from '../types';
+import {toJsDate} from './date';
 
-function getSheetName(date) {
+function getSheetName(date: Date): string {
   const raw = date.toLocaleString('uk-UA', {month: 'long', year: 'numeric'});
   return raw.charAt(0).toUpperCase() + raw.slice(1);
 }
 
-async function getAuthClient() {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-  const auth = new google.auth.GoogleAuth({
+function getAuth() {
+  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT as string);
+  return new google.auth.GoogleAuth({
     credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
-  return auth.getClient();
 }
 
-async function ensureSheet(sheets, spreadsheetId, sheetName) {
+async function ensureSheet(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetName: string): Promise<void> {
   const meta = await sheets.spreadsheets.get({spreadsheetId});
-  const exists = meta.data.sheets.some((s) => s.properties.title === sheetName);
+  const exists = meta.data.sheets?.some((s) => s.properties?.title === sheetName);
   if (exists) return;
 
   await sheets.spreadsheets.batchUpdate({
@@ -31,14 +32,13 @@ async function ensureSheet(sheets, spreadsheetId, sheetName) {
   });
 }
 
-async function appendExpenseToSheet(expense) {
+export async function appendExpenseToSheet(expense: Expense): Promise<void> {
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
   if (!spreadsheetId || !process.env.GOOGLE_SERVICE_ACCOUNT) return;
 
-  const auth = await getAuthClient();
-  const sheets = google.sheets({version: 'v4', auth});
+  const sheets = google.sheets({version: 'v4', auth: getAuth()});
 
-  const date = expense.date instanceof Date ? expense.date : expense.date.toDate();
+  const date = toJsDate(expense.date);
   const sheetName = getSheetName(date);
 
   await ensureSheet(sheets, spreadsheetId, sheetName);
@@ -48,17 +48,17 @@ async function appendExpenseToSheet(expense) {
     range: `'${sheetName}'!A1`,
     valueInputOption: 'USER_ENTERED',
     requestBody: {
-      values: [[
-        date.toLocaleDateString('uk-UA'),
-        expense.type !== 'income' ? expense.sum : '',
-        expense.type === 'income' ? expense.sum : '',
-        '',
-        expense.category || '',
-        expense.bank || '',
-        expense.note || '',
-      ]],
+      values: [
+        [
+          date.toLocaleDateString('uk-UA'),
+          expense.type !== 'income' ? expense.sum : '',
+          expense.type === 'income' ? expense.sum : '',
+          '',
+          expense.category || '',
+          expense.bank || '',
+          expense.note || '',
+        ],
+      ],
     },
   });
 }
-
-module.exports = {appendExpenseToSheet};
