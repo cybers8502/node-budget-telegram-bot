@@ -21,6 +21,7 @@ export type Step =
   | 'edit_choose'
   | 'edit_sum'
   | 'edit_category'
+  | 'edit_bank'
   | 'edit_note';
 
 export interface UserState {

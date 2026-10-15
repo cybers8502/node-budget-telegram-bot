@@ -1,6 +1,7 @@
 import {bot} from '../configs/telegramConfig';
 import handleAi from './handlers/handleAi';
 import handleEdit from './handlers/handleEdit';
+import handleEditBank from './handlers/handleEditBank';
 import handleEditCategory from './handlers/handleEditCategory';
 import handleEditChoose from './handlers/handleEditChoose';
 import handleEditNote from './handlers/handleEditNote';
@@ -80,6 +81,9 @@ export default function setupBotCommandsService() {
 
     if (data.startsWith('bank:')) {
       const index = Number(data.slice(5));
+      if (state?.step === 'edit_bank') {
+        return handleEditBank(bot, chatId, index, state);
+      }
       return handleSetBank(bot, chatId, index);
     }
 

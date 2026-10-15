@@ -1,5 +1,5 @@
 import type {Bot} from 'grammy';
-import {categoryKeyboard} from '../keyboards';
+import {bankKeyboard, categoryKeyboard} from '../keyboards';
 import {setUserState} from '../userState';
 
 export default function handleEditChoose(bot: Bot, chatId: number, text: string) {
@@ -17,5 +17,9 @@ export default function handleEditChoose(bot: Bot, chatId: number, text: string)
     setUserState(chatId, {step: 'edit_note'});
     return bot.api.sendMessage(chatId, 'Введіть новий опис:');
   }
-  return bot.api.sendMessage(chatId, 'Введіть 1, 2 або 3.');
+  if (choice === '4') {
+    setUserState(chatId, {step: 'edit_bank'});
+    return bot.api.sendMessage(chatId, 'Оберіть новий банк:', {reply_markup: bankKeyboard()});
+  }
+  return bot.api.sendMessage(chatId, 'Введіть 1, 2, 3 або 4.');
 }
