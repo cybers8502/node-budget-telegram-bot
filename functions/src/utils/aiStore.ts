@@ -1,16 +1,15 @@
 import {FieldValue, Timestamp} from 'firebase-admin/firestore';
 import {AI_DAILY_LIMIT, AI_HISTORY_TTL_MS, AI_HISTORY_TURNS} from '../configs/aiConfig';
-import {BUDGET_ID} from '../configs/consts';
 import {db} from '../configs/firebaseConfig';
 import {formatKyivIso} from './date';
+import {userRef} from './firebaseUtility';
 
 export interface AiTurn {
   q: string;
   a: string;
 }
 
-const stateCollection = (chatId: number) =>
-  db.collection('budgets').doc(BUDGET_ID).collection('users').doc(chatId.toString()).collection('state');
+const stateCollection = (chatId: number) => userRef(chatId).collection('state');
 
 // Counts one /ai question against today's (Kyiv) quota; false when the limit is already reached
 export async function consumeAiQuota(chatId: number): Promise<boolean> {

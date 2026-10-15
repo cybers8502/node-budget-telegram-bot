@@ -1,8 +1,7 @@
 import type {Bot} from 'grammy';
-import {BUDGET_ID} from '../../configs/consts';
 import type {Expense} from '../../types';
 import {formatKyivDate, toJsDate} from '../../utils/date';
-import {getLastExpense} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import {editChooseKeyboard} from '../keyboards';
 import {resetUserState} from '../userState';
 
@@ -27,7 +26,7 @@ export async function showEditMenu(bot: Bot, chatId: number, expense: Expense) {
 }
 
 export default async function handleEdit(bot: Bot, chatId: number) {
-  const lastExpense = await getLastExpense({budgetId: BUDGET_ID, userId: chatId.toString()});
+  const lastExpense = await forUser(chatId).getLastExpense();
 
   if (!lastExpense) {
     await bot.api.sendMessage(chatId, 'Немає записів для редагування.');

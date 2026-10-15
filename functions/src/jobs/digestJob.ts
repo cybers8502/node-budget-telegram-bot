@@ -1,9 +1,8 @@
-import {BUDGET_ID} from '../configs/consts';
 import {bot} from '../configs/telegramConfig';
 import type {JobResult} from './runMonitored';
 import {kyivParts, kyivStartOf} from '../utils/date';
 import {buildDigest} from '../utils/digest';
-import {getMonthExpenses, listUserIds} from '../utils/firebaseUtility';
+import {forUser, listUserIds} from '../utils/firebaseUtility';
 import {reportError} from '../utils/monitoring';
 import {isDigestEnabled} from '../utils/prefsStore';
 
@@ -17,14 +16,14 @@ export async function runDigestJob(now: Date = new Date()): Promise<JobResult> {
   let sent = 0;
   let failed = 0;
 
-  for (const userId of await listUserIds(BUDGET_ID)) {
+  for (const userId of await listUserIds()) {
     try {
       if (!(await isDigestEnabled(userId))) continue;
 
-      const range = {budgetId: BUDGET_ID, userId};
+      const user = forUser(userId);
       const [prevWeek, week] = await Promise.all([
-        getMonthExpenses({...range, from: prevStart, to: weekStart}),
-        getMonthExpenses({...range, from: weekStart, to: weekEnd}),
+        user.getMonthExpenses(prevStart, weekStart),
+        user.getMonthExpenses(weekStart, weekEnd),
       ]);
 
       const text = buildDigest(week, prevWeek);

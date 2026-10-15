@@ -1,7 +1,6 @@
 import type {Bot} from 'grammy';
-import {BUDGET_ID} from '../../configs/consts';
 import type {UserState} from '../../types';
-import {deleteExpense} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import {deleteConfirmKeyboard} from '../keyboards';
 import {clearUserState} from '../userState';
 
@@ -28,7 +27,7 @@ export default async function handleDelete(
   }
 
   if (action === 'yes') {
-    await deleteExpense({budgetId: BUDGET_ID, userId: chatId.toString(), expenseId: state.expense.id});
+    await forUser(chatId).deleteExpense(state.expense.id);
     await clearUserState(chatId);
     await bot.api.sendMessage(chatId, 'Запис видалено. Введіть нову суму для нового запису.');
     return;

@@ -1,8 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import type {Bot} from 'grammy';
 import type {Expense, UserState} from '../../types';
-import {BUDGET_ID} from '../../configs/consts';
-import {saveExpense} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import {limitWarningFor} from '../../utils/limitStore';
 import {clearUserState} from '../userState';
 
@@ -28,7 +27,7 @@ export default async function saveNewExpense(bot: Bot, chatId: number, state: Us
     }),
   };
 
-  await saveExpense({budgetId: BUDGET_ID, userId: chatId.toString(), data: newExpense});
+  await forUser(chatId).saveExpense(newExpense);
   await clearUserState(chatId);
   const warning = await limitWarningFor(chatId, newExpense);
 

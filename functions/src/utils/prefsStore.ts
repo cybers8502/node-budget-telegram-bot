@@ -1,14 +1,6 @@
-import {BUDGET_ID} from '../configs/consts';
-import {db} from '../configs/firebaseConfig';
+import {userRef} from './firebaseUtility';
 
-const prefsDoc = (chatId: number | string) =>
-  db
-    .collection('budgets')
-    .doc(BUDGET_ID)
-    .collection('users')
-    .doc(chatId.toString())
-    .collection('settings')
-    .doc('prefs');
+const prefsDoc = (chatId: number | string) => userRef(chatId).collection('settings').doc('prefs');
 
 // The weekly digest is on unless the user switched it off
 export async function isDigestEnabled(chatId: number | string): Promise<boolean> {

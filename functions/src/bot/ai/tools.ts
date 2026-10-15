@@ -1,8 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import {BUDGET_ID} from '../../configs/consts';
 import type {Expense} from '../../types';
 import {formatKyivIso, parseKyivDate, toJsDate} from '../../utils/date';
-import {getMonthExpenses} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import banks from '../banks';
 import categories from '../categories';
 import {type AddExpenseInput, GROUP_BY, type GroupBy, buildDraft, buildSummary, isIncome} from './summary';
@@ -84,12 +83,7 @@ async function loadRange(chatId: number, {from, to, category}: RangeInput): Prom
   const endDate = parseKyivDate(to);
   if (!startDate || !endDate) throw new Error('Invalid date, use YYYY-MM-DD');
 
-  const expenses = await getMonthExpenses({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    from: startDate,
-    to: endDate,
-  });
+  const expenses = await forUser(chatId).getMonthExpenses(startDate, endDate);
   return category ? expenses.filter((e) => e.category === category) : expenses;
 }
 

@@ -1,9 +1,8 @@
 import {InlineKeyboard} from 'grammy';
-import {BUDGET_ID} from '../configs/consts';
 import {bot} from '../configs/telegramConfig';
 import type {RecurringItem} from '../types';
 import {daysInKyivMonth, kyivParts, kyivStartOf} from '../utils/date';
-import {listUserIds, saveExpense} from '../utils/firebaseUtility';
+import {forUser, listUserIds} from '../utils/firebaseUtility';
 import type {JobResult} from './runMonitored';
 import {limitWarningFor} from '../utils/limitStore';
 import {reportError} from '../utils/monitoring';
@@ -33,7 +32,7 @@ async function chargeDue(userId: string, items: RecurringItem[], now: Date): Pro
   const lines: string[] = [];
   for (const item of due) {
     const expense = buildRecurringExpense(item, today, now);
-    await saveExpense({budgetId: BUDGET_ID, userId, data: expense});
+    await forUser(userId).saveExpense(expense);
 
     const {paid, finished} = afterPayment(item);
     const isPlan = item.payments !== undefined;
@@ -82,7 +81,7 @@ export async function runRecurringJob(now: Date = new Date()): Promise<JobResult
   let reminded = 0;
   let failed = 0;
 
-  for (const userId of await listUserIds(BUDGET_ID)) {
+  for (const userId of await listUserIds()) {
     try {
       charged += await chargeDue(userId, await listRecurring(userId), now);
       // Reload: charging changed lastRun/paid, and finished plans are gone

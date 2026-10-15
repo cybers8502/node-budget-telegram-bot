@@ -1,6 +1,5 @@
 import {FieldValue, type Timestamp} from 'firebase-admin/firestore';
-import {BUDGET_ID} from '../configs/consts';
-import {db} from '../configs/firebaseConfig';
+import {budgetRef} from './firebaseUtility';
 
 export interface JobRecord {
   at?: Timestamp;
@@ -8,7 +7,7 @@ export interface JobRecord {
   detail: string;
 }
 
-const jobsDoc = () => db.collection('budgets').doc(BUDGET_ID).collection('meta').doc('jobs');
+const jobsDoc = () => budgetRef().collection('meta').doc('jobs');
 
 // Last result of each scheduled job, shown by /status
 export async function recordJob(name: string, ok: boolean, detail: string): Promise<void> {

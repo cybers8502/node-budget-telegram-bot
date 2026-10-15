@@ -1,7 +1,6 @@
 import type {Bot} from 'grammy';
-import {BUDGET_ID} from '../../configs/consts';
 import type {UserState} from '../../types';
-import {updateExpense} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import banks from '../banks';
 import {clearUserState} from '../userState';
 
@@ -19,12 +18,7 @@ export default async function handleEditBank(bot: Bot, chatId: number, index: nu
 
   const newBank = banks[index];
 
-  await updateExpense({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    expenseId: state.expense.id,
-    data: {bank: newBank},
-  });
+  await forUser(chatId).updateExpense(state.expense.id, {bank: newBank});
 
   await clearUserState(chatId);
   await bot.api.sendMessage(chatId, `Банк оновлено: ${newBank}. Введіть нову суму для нового запису.`);

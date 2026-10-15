@@ -1,19 +1,11 @@
 import {FieldValue, Timestamp} from 'firebase-admin/firestore';
-import {BUDGET_ID} from '../configs/consts';
-import {db} from '../configs/firebaseConfig';
 import type {UserState} from '../types';
+import {userRef} from '../utils/firebaseUtility';
 
 // Conversation state lives in Firestore so it survives cold starts and instance recycling
 const STATE_TTL_MS = 60 * 60 * 1000;
 
-const stateDoc = (chatId: number) =>
-  db
-    .collection('budgets')
-    .doc(BUDGET_ID)
-    .collection('users')
-    .doc(chatId.toString())
-    .collection('state')
-    .doc('current');
+const stateDoc = (chatId: number) => userRef(chatId).collection('state').doc('current');
 
 export async function clearUserState(chatId: number): Promise<void> {
   await stateDoc(chatId).delete();

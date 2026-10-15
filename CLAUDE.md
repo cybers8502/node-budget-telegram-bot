@@ -82,7 +82,7 @@ budgets/{BUDGET_ID}/users/{chatId}/expenses/{uuid}
 
 Per-user extras: `users/{chatId}/recurring/{id}` (`RecurringItem`), `settings/limits` (`{limits: {category: amount}}`), `settings/prefs` (`{digest}`), `state/*` (conversation, AI history/usage).
 
-`BUDGET_ID` is hardcoded in `src/configs/consts.ts`. The `userId` used in Firestore paths is `chatId.toString()` (not the `USER_ID` constant, which is unused). Firestore access helpers are in `src/utils/firebaseUtility.ts`.
+`BUDGET_ID` is hardcoded in `src/configs/consts.ts`. The `userId` used in Firestore paths is `chatId.toString()` (not the `USER_ID` constant, which is unused). Firestore access helpers are in `src/utils/firebaseUtility.ts`: `userRef(chatId)` for the user's document (stores build their subcollections from it), `forUser(chatId)` for expense operations bound to that user, `budgetRef()` for budget-level data.
 
 ### Environment variables and secrets
 

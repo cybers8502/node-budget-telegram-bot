@@ -1,9 +1,7 @@
-import {BUDGET_ID} from '../configs/consts';
-import {db} from '../configs/firebaseConfig';
 import type {RecurringItem} from '../types';
+import {userRef} from './firebaseUtility';
 
-const recurringCollection = (chatId: number | string) =>
-  db.collection('budgets').doc(BUDGET_ID).collection('users').doc(chatId.toString()).collection('recurring');
+const recurringCollection = (chatId: number | string) => userRef(chatId).collection('recurring');
 
 export async function listRecurring(chatId: number | string): Promise<RecurringItem[]> {
   const snap = await recurringCollection(chatId).get();

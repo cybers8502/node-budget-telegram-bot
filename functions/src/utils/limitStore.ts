@@ -1,18 +1,9 @@
-import {BUDGET_ID} from '../configs/consts';
-import {db} from '../configs/firebaseConfig';
 import type {Expense} from '../types';
 import {kyivMonthRange, toJsDate} from './date';
-import {getMonthExpenses} from './firebaseUtility';
+import {forUser, userRef} from './firebaseUtility';
 import {limitCrossing, limitWarning} from './limits';
 
-const limitsDoc = (chatId: number) =>
-  db
-    .collection('budgets')
-    .doc(BUDGET_ID)
-    .collection('users')
-    .doc(chatId.toString())
-    .collection('settings')
-    .doc('limits');
+const limitsDoc = (chatId: number) => userRef(chatId).collection('settings').doc('limits');
 
 export async function getLimits(chatId: number): Promise<Record<string, number>> {
   const snap = await limitsDoc(chatId).get();
@@ -29,7 +20,7 @@ export async function setLimit(chatId: number, category: string, amount: number)
 
 export async function categorySpend(chatId: number, category: string, date: Date): Promise<number> {
   const {from, to} = kyivMonthRange(date);
-  const expenses = await getMonthExpenses({budgetId: BUDGET_ID, userId: chatId.toString(), from, to});
+  const expenses = await forUser(chatId).getMonthExpenses(from, to);
   return expenses
     .filter((e) => e.category === category && e.type !== 'income')
     .reduce((acc, e) => acc + (e.sum || 0), 0);

@@ -1,5 +1,4 @@
 import type {Bot} from 'grammy';
-import {BUDGET_ID} from '../../configs/consts';
 import type {Expense} from '../../types';
 import {
   daysInKyivMonth,
@@ -10,29 +9,19 @@ import {
   kyivStartOf,
   toJsDate,
 } from '../../utils/date';
-import {getMonthExpenses} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import {formatChange, isIncome, netTotal, spentByCategory, untilDay} from '../../utils/monthStats';
 
 export default async function handleMonthSum(bot: Bot, chatId: number) {
   const now = new Date();
   const {from, to} = kyivMonthRange(now);
 
-  const expenses = await getMonthExpenses({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    from,
-    to,
-  });
+  const expenses = await forUser(chatId).getMonthExpenses(from, to);
 
   const total = netTotal(expenses);
 
   const {year, month: monthIndex, day: dayOfMonth} = kyivParts(now);
-  const prevExpenses = await getMonthExpenses({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    from: kyivStartOf(year, monthIndex - 1, 1),
-    to: from,
-  });
+  const prevExpenses = await forUser(chatId).getMonthExpenses(kyivStartOf(year, monthIndex - 1, 1), from);
   const month = formatKyivMonth(now);
 
   const {from: todayStart, to: todayEnd} = kyivDayRange(now);

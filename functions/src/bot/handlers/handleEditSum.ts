@@ -1,8 +1,7 @@
 import type {Bot} from 'grammy';
-import {BUDGET_ID} from '../../configs/consts';
 import type {UserState} from '../../types';
 import {evalArithmetic} from '../../utils/evalArithmetic';
-import {updateExpense} from '../../utils/firebaseUtility';
+import {forUser} from '../../utils/firebaseUtility';
 import {clearUserState} from '../userState';
 
 export default async function handleEditSum(bot: Bot, chatId: number, text: string, state: UserState) {
@@ -18,15 +17,10 @@ export default async function handleEditSum(bot: Bot, chatId: number, text: stri
     return;
   }
 
-  await updateExpense({
-    budgetId: BUDGET_ID,
-    userId: chatId.toString(),
-    expenseId: state.expense.id,
-    // A foreign-currency record keeps its rate; the original amount follows the new UAH sum
-    data: {
-      sum,
-      ...(state.expense.rate && {originalSum: Math.round((sum / state.expense.rate) * 100) / 100}),
-    },
+  // A foreign-currency record keeps its rate; the original amount follows the new UAH sum
+  await forUser(chatId).updateExpense(state.expense.id, {
+    sum,
+    ...(state.expense.rate && {originalSum: Math.round((sum / state.expense.rate) * 100) / 100}),
   });
 
   await clearUserState(chatId);
