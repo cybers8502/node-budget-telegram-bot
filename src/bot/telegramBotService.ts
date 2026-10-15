@@ -11,6 +11,7 @@ import handleEditNote from './handlers/handleEditNote';
 import handleDelete from './handlers/handleDelete';
 import handleEditSum from './handlers/handleEditSum';
 import handleLast, {handleRecordSelected} from './handlers/handleLast';
+import {handleLimits, handleSetLimit} from './handlers/handleLimits';
 import handleMonthSum from './handlers/handleMonthSum';
 import handleSetBank from './handlers/handleSetBank';
 import handleSetCategory from './handlers/handleSetCategory';
@@ -43,6 +44,8 @@ export default function setupBotCommandsService() {
       {command: 'month', description: 'Сума витрат за поточний місяць'},
       {command: 'edit', description: 'Редагувати останній запис'},
       {command: 'last', description: 'Останні записи: редагувати або видалити'},
+      {command: 'limits', description: 'Ліміти на категорії та поточні витрати'},
+      {command: 'limit', description: 'Задати ліміт: /limit їжа 5000'},
       {command: 'ai', description: 'Запитати AI про витрати'},
       {command: 'cancel', description: 'Скасувати поточну дію'},
     ])
@@ -63,6 +66,14 @@ export default function setupBotCommandsService() {
 
   bot.command('last', async (ctx) => {
     await handleLast(bot, ctx.chat.id);
+  });
+
+  bot.command('limits', async (ctx) => {
+    await handleLimits(bot, ctx.chat.id);
+  });
+
+  bot.command('limit', async (ctx) => {
+    await handleSetLimit(bot, ctx.chat.id, ctx.match?.trim() ?? '');
   });
 
   bot.command('ai', async (ctx) => {

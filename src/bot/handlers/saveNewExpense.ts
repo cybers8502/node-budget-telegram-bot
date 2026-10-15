@@ -3,6 +3,7 @@ import type {Bot} from 'grammy';
 import type {Expense, UserState} from '../../types';
 import {BUDGET_ID} from '../../configs/consts';
 import {saveExpense} from '../../utils/firebaseUtility';
+import {limitWarningFor} from '../../utils/limitStore';
 import {clearUserState} from '../userState';
 
 export default async function saveNewExpense(bot: Bot, chatId: number, state: UserState, note: string) {
@@ -24,7 +25,11 @@ export default async function saveNewExpense(bot: Bot, chatId: number, state: Us
 
   await saveExpense({budgetId: BUDGET_ID, userId: chatId.toString(), data: newExpense});
   await clearUserState(chatId);
+  const warning = await limitWarningFor(chatId, newExpense);
 
   const summary = [`${state.sum} грн`, state.category, state.bank, note].filter(Boolean).join(' · ');
-  await bot.api.sendMessage(chatId, `Запис створено: ${summary}\nВведіть нову суму для нового запису.`);
+  await bot.api.sendMessage(
+    chatId,
+    `Запис створено: ${summary}${warning ? `\n${warning}` : ''}\nВведіть нову суму для нового запису.`,
+  );
 }

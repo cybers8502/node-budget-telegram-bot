@@ -31,6 +31,10 @@ const bankAliases: Record<string, string[]> = {
   Готівка: ['кеш', 'cash', 'нал'],
 };
 
+export function matchCategory(word: string): string | undefined {
+  return findOption(word, categories, categoryAliases, true);
+}
+
 function findOption(word: string, options: string[], aliases: Record<string, string[]>, prefix: boolean) {
   const w = word.toLowerCase();
   return options.find((option) => {

@@ -2,6 +2,7 @@ import type {Bot} from 'grammy';
 import {BUDGET_ID} from '../../configs/consts';
 import type {UserState} from '../../types';
 import {saveExpense} from '../../utils/firebaseUtility';
+import {limitWarningFor} from '../../utils/limitStore';
 import {clearUserState} from '../userState';
 
 // `ai:yes` | `ai:no` callbacks for an expense drafted by /ai
@@ -25,5 +26,9 @@ export default async function handleAiConfirm(
 
   await saveExpense({budgetId: BUDGET_ID, userId: chatId.toString(), data: state.expense});
   const {sum, category, note} = state.expense;
-  await bot.api.sendMessage(chatId, `Запис створено: ${sum} грн · ${category}${note ? ` · ${note}` : ''}`);
+  const warning = await limitWarningFor(chatId, state.expense);
+  await bot.api.sendMessage(
+    chatId,
+    `Запис створено: ${sum} грн · ${category}${note ? ` · ${note}` : ''}${warning ? `\n${warning}` : ''}`,
+  );
 }
