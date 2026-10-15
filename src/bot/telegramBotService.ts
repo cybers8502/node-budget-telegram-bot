@@ -1,5 +1,6 @@
 import {bot} from '../configs/telegramConfig';
 import handleAi from './handlers/handleAi';
+import handleAiConfirm from './handlers/handleAiConfirm';
 import handleEdit from './handlers/handleEdit';
 import handleEditBank from './handlers/handleEditBank';
 import handleEditCategory from './handlers/handleEditCategory';
@@ -94,6 +95,10 @@ export default function setupBotCommandsService() {
         return handleEditBank(bot, chatId, index, state);
       }
       return handleSetBank(bot, chatId, index);
+    }
+
+    if (data.startsWith('ai:')) {
+      return handleAiConfirm(bot, chatId, data.slice(3), state);
     }
 
     if (data.startsWith('rec:')) {

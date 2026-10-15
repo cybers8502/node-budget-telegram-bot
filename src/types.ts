@@ -22,7 +22,8 @@ export type Step =
   | 'edit_sum'
   | 'edit_category'
   | 'edit_bank'
-  | 'edit_note';
+  | 'edit_note'
+  | 'ai_confirm';
 
 export interface UserState {
   step?: Step;

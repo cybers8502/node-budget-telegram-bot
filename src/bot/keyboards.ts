@@ -32,6 +32,10 @@ export function deleteConfirmKeyboard(): InlineKeyboard {
   return new InlineKeyboard().text('Так, видалити', 'del:yes').text('Скасувати', 'del:no');
 }
 
+export function aiConfirmKeyboard(): InlineKeyboard {
+  return new InlineKeyboard().text('Так, записати', 'ai:yes').text('Скасувати', 'ai:no');
+}
+
 export function recentExpensesKeyboard(expenses: Expense[]): InlineKeyboard {
   const kb = new InlineKeyboard();
   for (const e of expenses) {

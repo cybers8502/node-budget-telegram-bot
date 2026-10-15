@@ -1,9 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type {Bot} from 'grammy';
 import {CLAUDE_MODEL, MAX_OUTPUT_TOKENS, MAX_TOOL_ITERATIONS, TURN_TOKEN_LIMIT} from '../../configs/aiConfig';
-import {formatKyivIso} from '../../utils/date';
+import type {Expense} from '../../types';
+import {formatKyivDate, formatKyivIso, toJsDate} from '../../utils/date';
 import {type ToolContext, runTool, tools} from '../ai/tools';
 import categories from '../categories';
+import {aiConfirmKeyboard} from '../keyboards';
+import {resetUserState} from '../userState';
 
 const TELEGRAM_MESSAGE_LIMIT = 4096;
 
@@ -22,12 +25,15 @@ function buildSystemPrompt() {
     `Expense categories: ${categories.join(', ')}.`,
     'Use the tools for any figure; never invent numbers. Prefer get_summary for totals, comparisons and trends, ' +
       'and get_expenses to list or look up individual records.',
+    'Use add_expense only when the user explicitly asks to add or record an expense. It only prepares a draft: ' +
+      'the user confirms it with buttons, so never say it is already saved.',
     "If the question is not about the user's budget, say briefly that you only help with expenses.",
   ].join('\n');
 }
 
 interface Answer {
   text: string;
+  draft?: Expense;
 }
 
 async function ask(chatId: number, question: string): Promise<Answer> {
@@ -84,18 +90,24 @@ async function ask(chatId: number, question: string): Promise<Answer> {
       .join('\n')
       .trim();
     if (response.stop_reason === 'max_tokens')
-      return {text: `${text}\n\n(відповідь обрізано)`.trim()};
-    return {text: text || 'Порожня відповідь, спробуйте перефразувати.'};
+      return {text: `${text}\n\n(відповідь обрізано)`.trim(), draft: ctx.draft};
+    return {text: text || 'Порожня відповідь, спробуйте перефразувати.', draft: ctx.draft};
   }
 
   return {text: 'Не вдалося завершити відповідь, спробуйте простіше запитання.'};
+}
+
+function describeDraft(e: Expense): string {
+  const parts = [`${e.sum} грн`, e.category, e.bank, e.note, formatKyivDate(toJsDate(e.date))];
+  return `Записати: ${parts.filter(Boolean).join(' · ')}?`;
 }
 
 export default async function handleAi(bot: Bot, chatId: number, question?: string) {
   if (!question) {
     return bot.api.sendMessage(
       chatId,
-      'Напишіть запитання після команди, напр.: /ai скільки я витратив на каву цього місяця?',
+      'Напишіть запитання після команди, напр.: /ai скільки я витратив на каву цього місяця? ' +
+        'Можна й додати запис: /ai додай 250 на продукти, моно.',
     );
   }
 
@@ -114,5 +126,11 @@ export default async function handleAi(bot: Bot, chatId: number, question?: stri
     );
   }
 
-  return bot.api.sendMessage(chatId, answer.text.slice(0, TELEGRAM_MESSAGE_LIMIT));
+  if (!answer.draft) return bot.api.sendMessage(chatId, answer.text.slice(0, TELEGRAM_MESSAGE_LIMIT));
+
+  // The draft waits in the conversation state until the user presses a button
+  await resetUserState(chatId, {step: 'ai_confirm', expense: answer.draft});
+  const draftText = describeDraft(answer.draft);
+  const text = `${answer.text.slice(0, TELEGRAM_MESSAGE_LIMIT - draftText.length - 2)}\n\n${draftText}`;
+  return bot.api.sendMessage(chatId, text, {reply_markup: aiConfirmKeyboard()});
 }
