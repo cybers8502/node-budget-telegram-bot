@@ -3,6 +3,7 @@ import {clearAiHistory} from '../utils/aiStore';
 import handleAi from './handlers/handleAi';
 import handleAiConfirm from './handlers/handleAiConfirm';
 import handleEdit from './handlers/handleEdit';
+import handleFlow from './handlers/handleFlow';
 import handleEditBank from './handlers/handleEditBank';
 import handleEditCategory from './handlers/handleEditCategory';
 import handleEditChoose from './handlers/handleEditChoose';
@@ -97,6 +98,10 @@ export default function setupBotCommandsService() {
         return handleEditBank(bot, chatId, index, state);
       }
       return handleSetBank(bot, chatId, index);
+    }
+
+    if (data.startsWith('flow:')) {
+      return handleFlow(bot, chatId, data.slice(5), state);
     }
 
     if (data.startsWith('ai:')) {

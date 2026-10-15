@@ -10,12 +10,15 @@ function optionsKeyboard(options: string[], prefix: string): InlineKeyboard {
     if (i % 2 === 1) kb.row();
   });
   if (options.length % 2 !== 0) kb.row();
-  return kb;
+  return kb.text('Скасувати', 'flow:cancel');
 }
 
 export const categoryKeyboard = () => optionsKeyboard(categories, 'cat');
 
 export const bankKeyboard = () => optionsKeyboard(banks, 'bank');
+
+export const noteKeyboard = () =>
+  new InlineKeyboard().text('Пропустити', 'flow:skip').text('Скасувати', 'flow:cancel');
 
 export function editChooseKeyboard(): InlineKeyboard {
   return new InlineKeyboard()
