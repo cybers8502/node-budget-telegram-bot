@@ -29,7 +29,7 @@ export const telegramWebhook = onRequest(
     memory: '256MiB',
     minInstances: 0,
     invoker: 'public',
-    secrets: ['TELEGRAM_BOT_TOKEN', 'SECRET', 'GOOGLE_SPREADSHEET_ID', 'GOOGLE_SERVICE_ACCOUNT', 'ANTHROPIC_API_KEY'],
+    secrets: ['TELEGRAM_BOT_TOKEN', 'SECRET', 'ANTHROPIC_API_KEY'],
   },
   app,
 );
