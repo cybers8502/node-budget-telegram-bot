@@ -1,5 +1,6 @@
 import {bot} from '../configs/telegramConfig';
 import {clearAiHistory} from '../utils/aiStore';
+import {reportError} from '../utils/monitoring';
 import handleAi from './handlers/handleAi';
 import handleAiConfirm from './handlers/handleAiConfirm';
 import handleDigest from './handlers/handleDigest';
@@ -19,6 +20,7 @@ import handleSetBank from './handlers/handleSetBank';
 import handleSetCategory from './handlers/handleSetCategory';
 import handleSetNote from './handlers/handleSetNote';
 import handleStart from './handlers/handleStart';
+import handleStatus from './handlers/handleStatus';
 import handleWaitingSum from './handlers/handleWaitingSum';
 import {clearUserState, getUserState} from './userState';
 
@@ -30,6 +32,12 @@ const allowedUsers = new Set(
 );
 
 export default function setupBotCommandsService() {
+  // A failing handler no longer fails silently: the admin is told and the user gets a reply
+  bot.catch(async (err) => {
+    await reportError(`Update ${err.ctx.update.update_id} failed`, err.error);
+    await err.ctx.reply('Сталася помилка. Спробуйте ще раз або /start.').catch(() => {});
+  });
+
   // Whitelist: ignore everyone not in ALLOWED_TG_USERS (empty list denies all)
   bot.use(async (ctx, next) => {
     const userId = ctx.from?.id;
@@ -51,6 +59,7 @@ export default function setupBotCommandsService() {
       {command: 'recurring', description: 'Підписки й розстрочки: додати або видалити'},
       {command: 'subs', description: 'Усі підписки та розстрочки за цей місяць'},
       {command: 'digest', description: 'Тижневий дайджест: /digest on або off'},
+      {command: 'status', description: 'Стан планових функцій (адмін)'},
       {command: 'ai', description: 'Запитати AI про витрати'},
       {command: 'cancel', description: 'Скасувати поточну дію'},
     ])
@@ -91,6 +100,10 @@ export default function setupBotCommandsService() {
 
   bot.command('subs', async (ctx) => {
     await handleSubs(bot, ctx.chat.id);
+  });
+
+  bot.command('status', async (ctx) => {
+    await handleStatus(bot, ctx.chat.id);
   });
 
   bot.command('ai', async (ctx) => {

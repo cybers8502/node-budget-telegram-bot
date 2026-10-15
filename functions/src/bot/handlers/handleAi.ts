@@ -7,6 +7,7 @@ import {formatKyivDate, formatKyivIso, toJsDate} from '../../utils/date';
 import {type ToolContext, runTool, tools} from '../ai/tools';
 import categories from '../categories';
 import {aiConfirmKeyboard} from '../keyboards';
+import {reportError} from '../../utils/monitoring';
 import {resetUserState} from '../userState';
 
 const TELEGRAM_MESSAGE_LIMIT = 4096;
@@ -137,7 +138,7 @@ export default async function handleAi(bot: Bot, chatId: number, question?: stri
   try {
     answer = await ask(chatId, question);
   } catch (err) {
-    console.error('AI error:', err);
+    if (!(err instanceof Anthropic.RateLimitError)) await reportError('/ai failed', err);
     return bot.api.sendMessage(
       chatId,
       err instanceof Anthropic.RateLimitError

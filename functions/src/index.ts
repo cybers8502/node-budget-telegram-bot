@@ -6,6 +6,8 @@ import setupBotCommandsService from './bot/telegramBotService';
 import {bot} from './configs/telegramConfig';
 import {runDigestJob} from './jobs/digestJob';
 import {runRecurringJob} from './jobs/recurringJob';
+import {runMonitored} from './jobs/runMonitored';
+import {reportError} from './utils/monitoring';
 
 const app = express();
 app.use(express.json());
@@ -13,6 +15,11 @@ app.use(express.json());
 const SECRET = process.env.SECRET || 'your own secret key';
 
 setupBotCommandsService();
+
+// Anything that escapes a handler still reaches the admin
+process.on('unhandledRejection', (reason) => {
+  void reportError('Unhandled rejection', reason);
+});
 
 app.get('/_health', (_req, res) => {
   res.status(200).send('OK');
@@ -46,7 +53,7 @@ export const recurringExpenses = onSchedule(
     secrets: ['TELEGRAM_BOT_TOKEN'],
   },
   async () => {
-    await runRecurringJob();
+    await runMonitored('recurringExpenses', () => runRecurringJob());
   },
 );
 
@@ -59,6 +66,6 @@ export const weeklyDigest = onSchedule(
     secrets: ['TELEGRAM_BOT_TOKEN'],
   },
   async () => {
-    await runDigestJob();
+    await runMonitored('weeklyDigest', () => runDigestJob());
   },
 );

@@ -41,7 +41,7 @@ Telegram → POST / → Express (src/index.ts) → webhookCallback (grammY) → 
 
 ### Commands
 
-`/start` (new expense), `/month` (month summary), `/edit` (edit last record), `/last` (pick any of the 8 latest records to edit or delete), `/limits` + `/limit <category> <sum>` (monthly category limits, warning at 80% and 100% after each save), `/recurring [<day> <quick input>]` (monthly automatic records: subscriptions, or installments with `x6` / `2/6`), `/subs` (all subscriptions and installments with this month's status), `/digest on|off` (weekly summary), `/ai <question>` (ask Claude about expenses), `/cancel`. New expenses accept quick input (`250 продукти моно сільпо`, `20 usd кафе`: foreign amounts are converted at the NBU rate and stored in UAH with `currency`/`originalSum`/`rate`). Category/bank/note keyboards carry cancel and skip buttons (`flow:` callbacks).
+`/start` (new expense), `/month` (month summary), `/edit` (edit last record), `/last` (pick any of the 8 latest records to edit or delete), `/limits` + `/limit <category> <sum>` (monthly category limits, warning at 80% and 100% after each save), `/recurring [<day> <quick input>]` (monthly automatic records: subscriptions, or installments with `x6` / `2/6`), `/subs` (all subscriptions and installments with this month's status), `/digest on|off` (weekly summary), `/status` (admin: last result of each scheduled job), `/ai <question>` (ask Claude about expenses), `/cancel`. New expenses accept quick input (`250 продукти моно сільпо`, `20 usd кафе`: foreign amounts are converted at the NBU rate and stored in UAH with `currency`/`originalSum`/`rate`). Category/bank/note keyboards carry cancel and skip buttons (`flow:` callbacks).
 
 ### Conversation state machine
 
@@ -56,6 +56,10 @@ Edit flow (`/edit`): `edit_choose` → `edit_sum` / `edit_category` / `edit_note
 ### Scheduled functions
 
 `recurringExpenses` (daily 08:00 Kyiv, `src/jobs/recurringJob.ts`) creates this month's record for every due `recurring` item with the deterministic id `rec-<itemId>-<YYYY-MM>` (retries cannot duplicate) and messages the user; installment items (`payments`/`paid`) are deleted after the last payment. The same run sends one "charged tomorrow" reminder per month (`reminded`) with a delete button (`rcr:del:<id>`) per item. A new item whose charge day already passed starts next month. `weeklyDigest` (Monday 09:00 Kyiv, `src/jobs/digestJob.ts`) sends last week's summary to users who have not switched it off. Both need only `TELEGRAM_BOT_TOKEN` and find users by listing `budgets/{BUDGET_ID}/users`.
+
+### Monitoring
+
+`src/utils/monitoring.ts` `reportError(context, err)` logs and sends the error text (no stack, no user data) to the admin in Telegram, at most once per 10 minutes per distinct error and instance. The admin is `ADMIN_TG_ID`, or the first id of `ALLOWED_TG_USERS` when it is not set. It is called from the grammY `bot.catch` (the user also gets a short apology), the `/ai` handler (not for rate limits), per-user failures in the scheduled jobs and `process.on('unhandledRejection')`. Scheduled functions run through `src/jobs/runMonitored.ts`: it records the outcome in `budgets/{id}/meta/jobs` (shown by `/status`), alerts on a crash and rethrows so the run is marked failed in Cloud logs. There is no Cloud Monitoring alert policy; a function that cannot start at all (bad deploy) is not reported by the bot itself.
 
 ### AI assistant (`/ai`)
 

@@ -4,7 +4,9 @@ import {bot} from '../configs/telegramConfig';
 import type {RecurringItem} from '../types';
 import {daysInKyivMonth, kyivParts, kyivStartOf} from '../utils/date';
 import {listUserIds, saveExpense} from '../utils/firebaseUtility';
+import type {JobResult} from './runMonitored';
 import {limitWarningFor} from '../utils/limitStore';
+import {reportError} from '../utils/monitoring';
 import {
   afterPayment,
   buildRecurringExpense,
@@ -23,10 +25,10 @@ const label = (item: RecurringItem, progress: string) => {
 };
 
 // Creates this month's record for every item that is due and tells the user; finished installment plans are removed
-async function chargeDue(userId: string, items: RecurringItem[], now: Date): Promise<void> {
+async function chargeDue(userId: string, items: RecurringItem[], now: Date): Promise<number> {
   const today = kyivParts(now);
   const due = items.filter((item) => isRecurringDue(item, today, daysInKyivMonth(now)));
-  if (due.length === 0) return;
+  if (due.length === 0) return 0;
 
   const lines: string[] = [];
   for (const item of due) {
@@ -48,10 +50,11 @@ async function chargeDue(userId: string, items: RecurringItem[], now: Date): Pro
   }
 
   await bot.api.sendMessage(Number(userId), `Автоматично записано:\n${lines.join('\n')}`);
+  return due.length;
 }
 
 // The day before the charge: one message listing what is charged tomorrow, with a delete button per item
-async function remindTomorrow(userId: string, items: RecurringItem[], now: Date): Promise<void> {
+async function remindTomorrow(userId: string, items: RecurringItem[], now: Date): Promise<number> {
   const tomorrowDate = new Date(
     kyivStartOf(kyivParts(now).year, kyivParts(now).month, kyivParts(now).day + 1).getTime() + HALF_DAY_MS,
   );
@@ -59,7 +62,7 @@ async function remindTomorrow(userId: string, items: RecurringItem[], now: Date)
   const dim = daysInKyivMonth(tomorrowDate);
 
   const soon = items.filter((item) => isDueTomorrow(item, tomorrow, dim));
-  if (soon.length === 0) return;
+  if (soon.length === 0) return 0;
 
   const kb = new InlineKeyboard();
   const lines = soon.map((item) => {
@@ -70,17 +73,25 @@ async function remindTomorrow(userId: string, items: RecurringItem[], now: Date)
 
   await bot.api.sendMessage(Number(userId), `Завтра спишеться:\n${lines.join('\n')}`, {reply_markup: kb});
   for (const item of soon) await updateRecurring(userId, item.id, {reminded: monthKey(tomorrow)});
+  return soon.length;
 }
 
 // Daily: charge what is due today, then remind about what is charged tomorrow
-export async function runRecurringJob(now: Date = new Date()): Promise<void> {
+export async function runRecurringJob(now: Date = new Date()): Promise<JobResult> {
+  let charged = 0;
+  let reminded = 0;
+  let failed = 0;
+
   for (const userId of await listUserIds(BUDGET_ID)) {
     try {
-      await chargeDue(userId, await listRecurring(userId), now);
+      charged += await chargeDue(userId, await listRecurring(userId), now);
       // Reload: charging changed lastRun/paid, and finished plans are gone
-      await remindTomorrow(userId, await listRecurring(userId), now);
+      reminded += await remindTomorrow(userId, await listRecurring(userId), now);
     } catch (err) {
-      console.error('Recurring job failed for user', userId, err);
+      failed++;
+      await reportError(`recurringExpenses failed for user ${userId}`, err);
     }
   }
+
+  return {failed, detail: `записано: ${charged}, нагадувань: ${reminded}`};
 }
