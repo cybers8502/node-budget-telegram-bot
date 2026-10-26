@@ -35,7 +35,7 @@ describe('parseQuickInput', () => {
 
   it('maps income aliases and cash', () => {
     expect(parseQuickInput('1000 зарплата')).toMatchObject({category: 'Дохід'});
-    expect(parseQuickInput('250 кеш бензин')).toMatchObject({category: 'Авто', bank: 'Готівка'});
+    expect(parseQuickInput('250 кеш бензин')).toMatchObject({category: 'Пальне', bank: 'Готівка'});
   });
 
   it('uses only the first category and first bank, the rest goes to the note', () => {

@@ -43,7 +43,7 @@ describe('parseLimitArgs', () => {
   it('parses a category word and an amount', () => {
     expect(parseLimitArgs('їжа 5000')).toEqual({category: 'Їжа', amount: 5000});
     expect(parseLimitArgs('продукти 2500+2500')).toEqual({category: 'Їжа', amount: 5000});
-    expect(parseLimitArgs('дім 8000')).toEqual({category: 'Дім/Ремонт', amount: 8000});
+    expect(parseLimitArgs('дім 8000')).toEqual({category: 'Дім', amount: 8000});
   });
 
   it('accepts 0 to remove a limit', () => {

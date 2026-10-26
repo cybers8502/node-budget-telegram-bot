@@ -83,6 +83,7 @@ functions/
 ```
 budgets/{BUDGET_ID}/users/{chatId}/
   expenses/{id}      id, type ('expense'|'income'), sum (always UAH), category, bank, note, date,
+                     tags (['розстрочка'] on installment payments from /recurring plans),
                      and for foreign-currency entries: currency, originalSum, rate
   recurring/{id}     day, sum, category, bank, note, lastRun, reminded, payments, paid
   settings/limits    { limits: { <category>: <amount> } }
@@ -95,7 +96,7 @@ budgets/{BUDGET_ID}/meta/jobs     last result of each scheduled job
 
 `BUDGET_ID` is a constant in `functions/src/configs/consts.ts`, and `chatId` is the Telegram chat id. Income uses the category `Дохід`.
 
-Categories: Їжа, Дім/Ремонт, Техніка, Авто, Розваги, Кафе, Подарунки, Медецина, Проїзд, Обслуговування кредиту, ЖКХ, Туризм, Спорт, Одяг, Краса, Підписка, Донат, Хобі, Дохід, Інше. Banks: ПБ, Моно, Сенс, ПУМБ, А-банк, IZI, Rozetka, Готівка.
+Categories: Їжа, Дім, Ремонт, Техніка, Авто, Пальне, Розваги, Кафе, Подарунки, Медицина, Проїзд, Кредити, ЖКХ, Туризм, Спорт, Одяг, Краса, Підписки і зв'язок, Проєкти, Освіта, Донат, Хобі, Дохід, Інше. The category list is duplicated in the r-budget web app (`BudgetCategory`); change both together. Banks: ПБ, Моно, Сенс, ПУМБ, А-банк, IZI, Rozetka, Готівка.
 
 ## Setup
 

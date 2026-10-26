@@ -9,6 +9,7 @@ export interface Expense {
   category: string;
   bank?: string | null;
   note?: string;
+  tags?: string[]; // e.g. INSTALLMENT_TAG on payments of an installment plan
   date: Date | Timestamp;
   // Set when entered in a foreign currency: `sum` is always UAH, converted at the NBU rate of that day
   currency?: string;

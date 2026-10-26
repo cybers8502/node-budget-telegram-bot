@@ -17,7 +17,7 @@ const item = (over: Partial<RecurringItem> = {}): RecurringItem => ({
   id: 'abc',
   day: 5,
   sum: 800,
-  category: 'Підписка',
+  category: "Підписки і зв'язок",
   bank: 'Моно',
   note: 'Netflix',
   ...over,
@@ -56,12 +56,18 @@ describe('recurring expenses', () => {
       id: 'rec-abc-2026-10',
       type: 'expense',
       sum: 800,
-      category: 'Підписка',
+      category: "Підписки і зв'язок",
       bank: 'Моно',
       note: 'Netflix',
       date: now,
     });
     expect(buildRecurringExpense(item({category: 'Дохід'}), today(5), now).type).toBe('income');
+  });
+
+  it('tags installment payments but not subscriptions', () => {
+    const now = new Date('2026-10-05T05:00:00Z');
+    expect(buildRecurringExpense(item({payments: 6, paid: 1}), today(5), now).tags).toEqual(['розстрочка']);
+    expect(buildRecurringExpense(item(), today(5), now)).not.toHaveProperty('tags');
   });
 });
 
@@ -70,7 +76,7 @@ describe('parseRecurringArgs', () => {
     expect(parseRecurringArgs('5 800 підписка моно Netflix')).toMatchObject({
       day: 5,
       sum: 800,
-      category: 'Підписка',
+      category: "Підписки і зв'язок",
       bank: 'Моно',
       note: 'Netflix',
     });
@@ -167,7 +173,7 @@ describe('buildSubsOverview', () => {
     expect(text).toContain('Підписки та розстрочки · жовтень 2026');
     expect(text.indexOf('05.10')).toBeLessThan(text.indexOf('12.10'));
     expect(text.indexOf('12.10')).toBeLessThan(text.indexOf('25.10'));
-    expect(text).toContain('✅ 05.10 · 800 грн · Підписка · Моно · Netflix');
+    expect(text).toContain("✅ 05.10 · 800 грн · Підписки і зв'язок · Моно · Netflix");
     expect(text).toContain('⏳ 25.10 · 1200 грн · Техніка · Моно · ноутбук (3/6)');
     expect(text).toContain('Разом за місяць: 2300 грн (списано 1100, ще 1200)');
   });

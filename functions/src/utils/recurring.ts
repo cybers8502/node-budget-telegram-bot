@@ -50,6 +50,9 @@ export function recurringExpenseId(item: RecurringItem, today: KyivToday): strin
   return `rec-${item.id}-${monthKey(today)}`;
 }
 
+// Matches the tag the r-budget web app puts on installment payments
+export const INSTALLMENT_TAG = 'розстрочка';
+
 export function buildRecurringExpense(item: RecurringItem, today: KyivToday, now: Date): Expense {
   return {
     id: recurringExpenseId(item, today),
@@ -58,6 +61,7 @@ export function buildRecurringExpense(item: RecurringItem, today: KyivToday, now
     category: item.category,
     bank: item.bank,
     note: item.note,
+    ...(item.payments !== undefined && {tags: [INSTALLMENT_TAG]}),
     date: now,
   };
 }
