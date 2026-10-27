@@ -1,7 +1,14 @@
 import type {Expense} from '../types';
 import {kyivParts, toJsDate} from './date';
 
-export const isIncome = (e: Expense) => e.type === 'income' || e.category === 'Дохід';
+export const INCOME_CATEGORY = 'Дохід';
+
+export const isIncome = (e: Expense) =>
+  e.kind === 'income' || e.type === 'income' || e.category === INCOME_CATEGORY;
+
+// `type` for the bot and `kind` for the web app; income is the only kind the bot writes
+export const incomeFields = (category: string): Pick<Expense, 'type' | 'kind'> =>
+  category === INCOME_CATEGORY ? {type: 'income', kind: 'income'} : {type: 'expense'};
 
 // Expenses minus income, the same "net" figure /month has always shown
 export function netTotal(expenses: Expense[]): number {

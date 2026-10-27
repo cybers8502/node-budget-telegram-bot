@@ -3,6 +3,7 @@ import type {Bot} from 'grammy';
 import type {Expense, UserState} from '../../types';
 import {forUser} from '../../utils/firebaseUtility';
 import {limitWarningFor} from '../../utils/limitStore';
+import {incomeFields} from '../../utils/monthStats';
 import {clearUserState} from '../userState';
 
 export default async function saveNewExpense(bot: Bot, chatId: number, state: UserState, note: string) {
@@ -14,7 +15,7 @@ export default async function saveNewExpense(bot: Bot, chatId: number, state: Us
 
   const newExpense: Expense = {
     id: randomUUID(),
-    type: state.category === 'Дохід' ? 'income' : 'expense',
+    ...incomeFields(state.category),
     sum: state.sum,
     category: state.category,
     bank: state.bank || null,

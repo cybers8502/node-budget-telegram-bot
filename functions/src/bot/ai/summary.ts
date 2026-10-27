@@ -1,6 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import type {Expense} from '../../types';
 import {formatKyivIso, parseKyivDate, toJsDate} from '../../utils/date';
+import {incomeFields, isIncome} from '../../utils/monthStats';
 import banks from '../banks';
 import categories from '../categories';
 
@@ -10,8 +11,9 @@ export type GroupBy = (typeof GROUP_BY)[number];
 const MAX_GROUPS = 370;
 const UNKNOWN_BANK = 'unknown';
 
+export {isIncome};
+
 const round = (n: number) => Math.round(n * 100) / 100;
-export const isIncome = (e: Expense) => e.type === 'income' || e.category === 'Дохід';
 
 function groupKey(e: Expense, groupBy: GroupBy): string {
   if (groupBy === 'category') return e.category;
@@ -86,7 +88,7 @@ export function buildDraft(input: AddExpenseInput, now: Date = new Date()): Expe
 
   return {
     id: randomUUID(),
-    type: category === 'Дохід' ? 'income' : 'expense',
+    ...incomeFields(category),
     sum: round(sum),
     category,
     bank: (bank as string | undefined) || null,

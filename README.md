@@ -94,7 +94,7 @@ budgets/{BUDGET_ID}/users/{chatId}/
 budgets/{BUDGET_ID}/meta/jobs     last result of each scheduled job
 ```
 
-`BUDGET_ID` is a constant in `functions/src/configs/consts.ts`, and `chatId` is the Telegram chat id. Income uses the category `Дохід`.
+`BUDGET_ID` is a constant in `functions/src/configs/consts.ts`, and `chatId` is the Telegram chat id. Income uses the category `Дохід` and is also saved with `kind: 'income'`, the record kind the r-budget web app reads.
 
 Categories: Їжа, Дім, Ремонт, Техніка, Авто, Пальне, Розваги, Кафе, Подарунки, Медицина, Проїзд, Кредити, ЖКХ, Туризм, Спорт, Одяг, Краса, Підписки і зв'язок, Проєкти, Освіта, Донат, Хобі, Дохід, Інше. The category list is duplicated in the r-budget web app (`BudgetCategory`); change both together. Banks: ПБ, Моно, Сенс, ПУМБ, А-банк, IZI, Rozetka, Готівка.
 

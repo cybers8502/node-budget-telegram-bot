@@ -1,6 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {type QuickEntry, parseQuickInput} from '../bot/quickInput';
 import type {Expense, RecurringItem} from '../types';
+import {incomeFields} from './monthStats';
 
 export interface KyivToday {
   year: number;
@@ -56,7 +57,7 @@ export const INSTALLMENT_TAG = 'розстрочка';
 export function buildRecurringExpense(item: RecurringItem, today: KyivToday, now: Date): Expense {
   return {
     id: recurringExpenseId(item, today),
-    type: item.category === 'Дохід' ? 'income' : 'expense',
+    ...incomeFields(item.category),
     sum: item.sum,
     category: item.category,
     bank: item.bank,

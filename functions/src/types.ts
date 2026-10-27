@@ -5,6 +5,9 @@ export type ExpenseType = 'expense' | 'income';
 export interface Expense {
   id: string;
   type?: ExpenseType; // missing on legacy records, then derived from category
+  // The r-budget web app's record kind: only 'income' is written here (income must not count as spending there);
+  // the app also has transfer, refund and investment. Missing means expense, or income for the old category 'Дохід'.
+  kind?: 'expense' | 'transfer' | 'refund' | 'investment' | 'income';
   sum: number;
   category: string;
   bank?: string | null;

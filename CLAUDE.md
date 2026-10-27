@@ -73,8 +73,9 @@ Each saved expense is written to Firestore.
 budgets/{BUDGET_ID}/users/{chatId}/expenses/{uuid}
   - id: string (uuid v4)
   - type: 'expense' | 'income'
+  - kind?: 'income' (the r-budget record kind; written only for income, missing = expense)
   - sum: number
-  - category: string   (income uses category 'Дохід')
+  - category: string   (income uses category 'Дохід'; the web app also accepts other categories for `kind: 'income'`)
   - bank: string | null
   - note: string
   - date: Date

@@ -61,7 +61,10 @@ describe('recurring expenses', () => {
       note: 'Netflix',
       date: now,
     });
-    expect(buildRecurringExpense(item({category: 'Дохід'}), today(5), now).type).toBe('income');
+    expect(buildRecurringExpense(item({category: 'Дохід'}), today(5), now)).toMatchObject({
+      type: 'income',
+      kind: 'income',
+    });
   });
 
   it('tags installment payments but not subscriptions', () => {

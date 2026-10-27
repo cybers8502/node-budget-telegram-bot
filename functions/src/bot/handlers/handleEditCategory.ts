@@ -1,6 +1,7 @@
 import type {Bot} from 'grammy';
 import type {UserState} from '../../types';
 import {forUser} from '../../utils/firebaseUtility';
+import {INCOME_CATEGORY, incomeFields} from '../../utils/monthStats';
 import categories from '../categories';
 import {clearUserState} from '../userState';
 
@@ -18,9 +19,12 @@ export default async function handleEditCategory(bot: Bot, chatId: number, index
 
   const newCategory = categories[index];
 
+  // Leaving the income category must also drop an income kind, which would otherwise win in the web app
+  const wasIncome = state.expense.kind === 'income';
   await forUser(chatId).updateExpense(state.expense.id, {
     category: newCategory,
-    type: newCategory === 'Дохід' ? 'income' : 'expense',
+    ...incomeFields(newCategory),
+    ...(newCategory !== INCOME_CATEGORY && wasIncome && {kind: 'expense' as const}),
   });
 
   await clearUserState(chatId);

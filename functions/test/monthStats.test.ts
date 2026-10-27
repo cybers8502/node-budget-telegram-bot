@@ -1,6 +1,13 @@
 import {describe, expect, it} from 'vitest';
 import type {Expense} from '../src/types';
-import {formatChange, netTotal, spentByCategory, untilDay} from '../src/utils/monthStats';
+import {
+  formatChange,
+  incomeFields,
+  isIncome,
+  netTotal,
+  spentByCategory,
+  untilDay,
+} from '../src/utils/monthStats';
 
 const exp = (over: Partial<Expense>): Expense => ({
   id: 'x',
@@ -39,5 +46,17 @@ describe('monthStats', () => {
     expect(formatChange(80, 100)).toBe('-20%');
     expect(formatChange(100, 100)).toBe('0%');
     expect(formatChange(100, 0)).toBeNull();
+  });
+});
+
+describe('income kind', () => {
+  it('treats a record of the income kind as income whatever its category', () => {
+    expect(isIncome(exp({sum: 100, category: 'Інше', kind: 'income'}))).toBe(true);
+    expect(isIncome(exp({sum: 100, category: 'Інше'}))).toBe(false);
+  });
+
+  it('writes kind only for income', () => {
+    expect(incomeFields('Дохід')).toEqual({type: 'income', kind: 'income'});
+    expect(incomeFields('Їжа')).toEqual({type: 'expense'});
   });
 });

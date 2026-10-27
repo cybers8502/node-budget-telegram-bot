@@ -2,6 +2,7 @@ import type {Expense} from '../types';
 import {kyivMonthRange, toJsDate} from './date';
 import {forUser, userRef} from './firebaseUtility';
 import {limitCrossing, limitWarning} from './limits';
+import {isIncome} from './monthStats';
 
 const limitsDoc = (chatId: number) => userRef(chatId).collection('settings').doc('limits');
 
@@ -22,13 +23,13 @@ export async function categorySpend(chatId: number, category: string, date: Date
   const {from, to} = kyivMonthRange(date);
   const expenses = await forUser(chatId).getMonthExpenses(from, to);
   return expenses
-    .filter((e) => e.category === category && e.type !== 'income')
+    .filter((e) => e.category === category && !isIncome(e))
     .reduce((acc, e) => acc + (e.sum || 0), 0);
 }
 
 // Call right after the expense is saved: returns a warning line when it crossed 80% or 100%, else ''
 export async function limitWarningFor(chatId: number, expense: Expense): Promise<string> {
-  if (expense.type === 'income' || expense.category === 'Дохід') return '';
+  if (isIncome(expense)) return '';
 
   try {
     const limit = (await getLimits(chatId))[expense.category];
